@@ -1,0 +1,23 @@
+﻿<UserControl x:Class="GraphEditor.TabTemplate"
+             xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+             xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+             xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006" 
+             xmlns:d="http://schemas.microsoft.com/expression/blend/2008" 
+             xmlns:local="clr-namespace:GraphEditor"
+             mc:Ignorable="d" 
+             d:DesignHeight="450" d:DesignWidth="800">
+    <Grid>
+        <Canvas x:Name="MainCanvas" Cursor="Arrow" KeyDown="Canvas_PressedKey" Background="White" Focusable="True" FocusVisualStyle="{x:Null}" >
+            <local:Node EllipseName="Haron" EllipseFill="Transparent" HorizontalAlignment="Left" Canvas.Left="220" Canvas.Top="198" VerticalAlignment="Center" MouseDown="Ellipse_MouseDown" MouseMove="Ellipse_MouseMove" MouseUp="Ellipse_MouseUp" KeyDown="Ellipse_PressedKey" Focusable="True"/>
+            <local:Node EllipseName="Lelush" EllipseFill="Transparent" HorizontalAlignment="Left" Canvas.Left="250" Canvas.Top="298" VerticalAlignment="Center" MouseDown="Ellipse_MouseDown" MouseMove="Ellipse_MouseMove" MouseUp="Ellipse_MouseUp" KeyDown="Ellipse_PressedKey" Focusable="True"/>
+        </Canvas>
+        <Border BorderBrush ="Black" BorderThickness="2" HorizontalAlignment="Right" VerticalAlignment="Top">
+            <Canvas x:Name="GraphStatsCanvas" MinWidth="150" MinHeight="75" Margin="10">
+                <!-- Добавим элементы, например, текстовые блоки для отображения информации -->
+                <TextBlock x:Name="NodeCountText" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5" />
+                <TextBlock x:Name="EdgeCountText" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5, 20, 0, 0"/>
+                <TextBlock x:Name="NodeMultiplicityCountText" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5, 40, 0, 0" MaxWidth="140" TextWrapping="Wrap" TextAlignment="Left"/>
+            </Canvas>
+        </Border>
+    </Grid>
+</UserControl>
