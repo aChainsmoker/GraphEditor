@@ -24,7 +24,7 @@ namespace GraphEditor
 
             Panel.SetZIndex(this, 2);
 
-            arrowHead.Visibility = Visibility.Collapsed;
+            //arrowHead.Visibility = Visibility.Collapsed;
         }
 
         // Метод для обновления положения линии между узлами
@@ -62,14 +62,14 @@ namespace GraphEditor
 
             // Находим угол между узлами
             double angle = Math.Atan2(endPoint.Y - lines[lines.Count - 1].Y1, endPoint.X - lines[lines.Count - 1].X1) * 180 / Math.PI;
+            
 
-
-            Vector direction = new Vector(endPoint.X - lines[lines.Count-1].X1, endPoint.Y - lines[lines.Count - 1].X1);
+            Vector direction = new Vector(endPoint.X - lines[lines.Count-1].X1, endPoint.Y - lines[lines.Count - 1].Y1);
             direction.Normalize(); // Нормализуем вектор, чтобы его длина стала 1
 
             // Позиционируем стрелку на конце линии
-            Canvas.SetLeft(arrowHead, endPoint.X - direction.X*EndNode.ellipse.Width - arrowHead.Width/5);
-            Canvas.SetTop(arrowHead, endPoint.Y - direction.Y * EndNode.ellipse.Height - arrowHead.Height);
+            Canvas.SetLeft(this, endPoint.X - direction.X*EndNode.ellipse.Width - arrowHead.Width/5);
+            Canvas.SetTop(this, endPoint.Y - direction.Y * EndNode.ellipse.Height - arrowHead.Height/2);
 
 
             RotateTransform rotateTransform = new RotateTransform(angle);
@@ -77,6 +77,23 @@ namespace GraphEditor
             arrowHead.RenderTransform = rotateTransform;
         }
 
+
+        public void PaintTheEdge()
+        {
+            for(int i =0; i<lines.Count; i++)
+            {
+                lines[i].Stroke = edgeStroke;
+            }
+            arrowHead.Stroke = edgeStroke;
+        }
+        public void PaintTheEdge(Brush brush)
+        {
+            for (int i = 0; i < lines.Count; i++)
+            {
+                lines[i].Stroke = brush;
+            }
+            arrowHead.Stroke = brush;
+        }
     }
 }
 
