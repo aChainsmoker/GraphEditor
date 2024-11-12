@@ -152,9 +152,9 @@ namespace GraphEditor
                 StartNode = node1,
                 EndNode = node2,
                 lines = this.lines
+
             };
 
-            
 
             edge.MouseDown += Edge_MouseDown;
             edge.KeyDown += Edge_PressedKey;
@@ -166,6 +166,7 @@ namespace GraphEditor
 
 
             edge.UpdatePosition();
+            //lines = new List<Line>();
 
             node1.edges.Add(edge);
             node2.edges.Add(edge);
