@@ -33,7 +33,8 @@ namespace GraphEditor
         private Node selectedNode1;
         private Node selectedNode2;
         private bool isSelectingEdges = false; // Флаг для режима выбора рёбер
-        
+        private bool pointWasAssigned = false;
+        private List<Line> lines = new List<Line>();
         private bool ClearFocusLighting()
         {
             if (lastFocusedObject != null)
@@ -135,9 +136,7 @@ namespace GraphEditor
             {
                 selectedNode2 = node;
 
-                // Создаем дугу между двумя выбранными узлами
                 CreateEdge(selectedNode1, selectedNode2);
-
                 // Сбрасываем выбранные узлы после создания дуги
                 selectedNode1 = null;
                 selectedNode2 = null;
@@ -151,14 +150,20 @@ namespace GraphEditor
             Edge edge = new Edge
             {
                 StartNode = node1,
-                EndNode = node2
+                EndNode = node2,
+                lines = this.lines
             };
+
+            
 
             edge.MouseDown += Edge_MouseDown;
             edge.KeyDown += Edge_PressedKey;
 
-            MainCanvas.Children.Add(edge);
+
             edges.Add(edge);
+            MainCanvas.Children.Add(edge);
+
+
 
 
             edge.UpdatePosition();
@@ -290,6 +295,22 @@ namespace GraphEditor
                 NodeMultiplicityCountText.Text = String.Empty;
         }
 
+        private void MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
+        {
+            if(isSelectingEdges && selectedNode1 != null)
+            {
+                Point startPoint = selectedNode1.ellipse.TranslatePoint(
+                    new Point(selectedNode1.ellipse.ActualWidth / 2, selectedNode1.ellipse.ActualHeight / 2),
+                    (UIElement)selectedNode1.Parent);
+                Line line;
+                if (lines.Count == 0)
+                     line = new Line { Stroke = Brushes.Black, StrokeThickness = 3, X2 = e.GetPosition(MainCanvas).X, Y2 = e.GetPosition(MainCanvas).Y, X1 = startPoint.X, Y1 = startPoint.Y};
+                else
+                    line = new Line { Stroke = Brushes.Black, StrokeThickness = 3, X2 = e.GetPosition(MainCanvas).X, Y2 = e.GetPosition(MainCanvas).Y, X1 = lines[lines.Count-1].X1, Y1 = lines[lines.Count-1].Y1 };
+                lines.Add(line);
+            }
+
+        }
     }
 }
 

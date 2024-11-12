@@ -8,4 +8,8 @@
     <UseWPF>true</UseWPF>
   </PropertyGroup>
 
+  <ItemGroup>
+    <None Remove="Edge.xaml.cs~RF1e6343a3.TMP" />
+  </ItemGroup>
+
 </Project>

@@ -11,9 +11,9 @@ namespace GraphEditor
         public Node StartNode { get; set; }
         public Node EndNode { get; set; }
 
-        public bool isOriented = true;
+        public bool isOriented = false;
         public Brush edgeStroke = Brushes.Black;
-
+        public List<Line> lines = new List<Line>();
 
         public Edge()
         {
@@ -22,10 +22,32 @@ namespace GraphEditor
             this.Focusable = true;
             this.FocusVisualStyle = null;
 
-            Panel.SetZIndex(this, 1);
+            Panel.SetZIndex(this, 2);
+
+            arrowHead.Visibility = Visibility.Collapsed;
         }
 
         // Метод для обновления положения линии между узлами
+        public void UpdatePosition(Point endPoint)
+        {
+            if (StartNode != null)
+            {
+                // Получаем центр первого узла
+                Point startPoint = StartNode.ellipse.TranslatePoint(
+                    new Point(StartNode.ellipse.ActualWidth / 2, StartNode.ellipse.ActualHeight / 2),
+                    (UIElement)StartNode.Parent);
+
+
+                // Обновляем координаты линии
+                lines[0].X1 = startPoint.X;
+                lines[0].Y1 = startPoint.Y;
+                lines[lines.Count-1].X2 = endPoint.X;
+                lines[lines.Count - 1].Y2 = endPoint.Y;
+
+            }
+
+        }
+
         public void UpdatePosition()
         {
             if (StartNode != null && EndNode != null)
@@ -34,18 +56,15 @@ namespace GraphEditor
                 Point startPoint = StartNode.ellipse.TranslatePoint(
                     new Point(StartNode.ellipse.ActualWidth / 2, StartNode.ellipse.ActualHeight / 2),
                     (UIElement)StartNode.Parent);
-
-                // Получаем центр второго узла
                 Point endPoint = EndNode.ellipse.TranslatePoint(
                     new Point(EndNode.ellipse.ActualWidth / 2, EndNode.ellipse.ActualHeight / 2),
                     (UIElement)EndNode.Parent);
 
                 // Обновляем координаты линии
-                edgeLine.X1 = startPoint.X;
-                edgeLine.Y1 = startPoint.Y;
-                edgeLine.X2 = endPoint.X;
-                edgeLine.Y2 = endPoint.Y;
-
+                lines[0].X1 = startPoint.X;
+                lines[0].Y1 = startPoint.Y;
+                lines[lines.Count - 1].X2 = endPoint.X;
+                lines[lines.Count - 1].Y2 = endPoint.Y;
 
                 UpdateArrowPosition(startPoint, endPoint);
             }
@@ -70,6 +89,7 @@ namespace GraphEditor
 
             arrowHead.RenderTransform = rotateTransform;
         }
+
     }
 }
 
