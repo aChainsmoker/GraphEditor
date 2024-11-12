@@ -29,12 +29,12 @@ namespace GraphEditor
         private UIElement lastFocusedObject;
         private List<Node> nodes = new List<Node>();
         private List<Edge> edges = new List<Edge>();
+        private List<Point> edgePoints = new List<Point>();
 
         private Node selectedNode1;
         private Node selectedNode2;
         private bool isSelectingEdges = false; // Флаг для режима выбора рёбер
         private bool pointWasAssigned = false;
-        private List<Line> lines = new List<Line>();
         private bool ClearFocusLighting()
         {
             if (lastFocusedObject != null)
@@ -146,32 +146,27 @@ namespace GraphEditor
 
         private void CreateEdge(Node node1, Node node2)
         {
-            Point endPoint = node2.ellipse.TranslatePoint(
-                    new Point(node2.ellipse.ActualWidth / 2, node2.ellipse.ActualHeight / 2),
-                    (UIElement)node2.Parent);
-
-            Line line = new Line { Stroke = Brushes.Black, StrokeThickness = 3, X2 = endPoint.X, Y2 = endPoint.Y, X1 = lines[lines.Count - 1].X2, Y1 = lines[lines.Count - 1].Y2 };
-            MainCanvas.Children.Add(line);
-            lines.Add(line);
-
+            Point phantomPoint = new Point();
             // Создаем новый экземпляр Edge
             Edge edge = new Edge
             {
                 StartNode = node1,
                 EndNode = node2,
-                lines = this.lines
-
             };
+
+            for(int i =0; i<edgePoints.Count; i++)
+                edge.polyline.Points.Add(edgePoints[i]);
+            edge.polyline.Points.Add(phantomPoint);
+            edgePoints = new List<Point>();
 
             edge.MouseDown += Edge_MouseDown;
             edge.KeyDown += Edge_PressedKey;
 
             edges.Add(edge);
-            MainCanvas.Children.Add(edge);
+            //MainCanvas.Children.Add(edge.polyline);
+            MainCanvas.Children.Add(edge); // Добавляем Edge на Canvas
 
-            edge.UpdatePosition();
-            lines = new List<Line>();
-
+            edge.UpdatePosition(); // Устанавливаем начальные точки
             node1.edges.Add(edge);
             node2.edges.Add(edge);
 
@@ -303,21 +298,23 @@ namespace GraphEditor
         {
             if(isSelectingEdges && selectedNode1 != null && selectedNode2 == null)
             {
-                if (pointWasAssigned)
-                {
-                    pointWasAssigned = false;
-                    return;
-                }
+
                 Point startPoint = selectedNode1.ellipse.TranslatePoint(
                     new Point(selectedNode1.ellipse.ActualWidth / 2, selectedNode1.ellipse.ActualHeight / 2),
                     (UIElement)selectedNode1.Parent);
-                Line line;
-                if (lines.Count == 0)
-                     line = new Line { Stroke = Brushes.Black, StrokeThickness = 3, X2 = e.GetPosition(MainCanvas).X, Y2 = e.GetPosition(MainCanvas).Y, X1 = startPoint.X, Y1 = startPoint.Y};
+                Point currentPoint = e.GetPosition(MainCanvas);
+                if (edgePoints.Count ==0 )
+                {
+                    Point point = new Point(startPoint.X, startPoint.Y);
+                    edgePoints.Add(point);
+                }
                 else
-                    line = new Line { Stroke = Brushes.Black, StrokeThickness = 3, X2 = e.GetPosition(MainCanvas).X, Y2 = e.GetPosition(MainCanvas).Y, X1 = lines[lines.Count-1].X2, Y1 = lines[lines.Count-1].Y2 };
-                MainCanvas.Children.Add(line);
-                lines.Add(line);
+                {
+                    Point point = new Point(currentPoint.X, currentPoint.Y);
+                    edgePoints.Add(point);
+                }
+
+                
             }
 
         }

@@ -13,7 +13,7 @@ namespace GraphEditor
 
         public bool isOriented = false;
         public Brush edgeStroke = Brushes.Black;
-        public List<Line> lines = new List<Line>();
+        public Polyline polyline;
 
         public Edge()
         {
@@ -22,8 +22,18 @@ namespace GraphEditor
             this.Focusable = true;
             this.FocusVisualStyle = null;
 
-            Panel.SetZIndex(this, 2);
+            
 
+            polyline = new Polyline
+            {
+                Stroke = edgeStroke,
+                StrokeThickness = 3
+            };
+
+            Panel.SetZIndex(polyline, 1);
+            Panel.SetZIndex(arrowHead, 2);
+
+            MainGrid.Children.Add(polyline);
             //arrowHead.Visibility = Visibility.Collapsed;
         }
 
@@ -38,61 +48,48 @@ namespace GraphEditor
                 Point startPoint = StartNode.ellipse.TranslatePoint(
                     new Point(StartNode.ellipse.ActualWidth / 2, StartNode.ellipse.ActualHeight / 2),
                     (UIElement)StartNode.Parent);
+
+                // Получаем центр второго узла
                 Point endPoint = EndNode.ellipse.TranslatePoint(
                     new Point(EndNode.ellipse.ActualWidth / 2, EndNode.ellipse.ActualHeight / 2),
                     (UIElement)EndNode.Parent);
 
-                // Обновляем координаты линии
-                lines[0].X1 = startPoint.X;
-                lines[0].Y1 = startPoint.Y;
-                lines[lines.Count - 1].X2 = endPoint.X;
-                lines[lines.Count - 1].Y2 = endPoint.Y;
+                // Обновляем точки Polyline: начальная, промежуточные и конечная
+                polyline.Points.RemoveAt(0);
 
-                Debug.WriteLine(lines[0].X1);
-                Debug.WriteLine(lines[0].Y1);
-                Debug.WriteLine(lines[lines.Count - 1].X2);
-                Debug.WriteLine(lines[lines.Count - 1].Y2);
+                polyline.Points.Insert(0, startPoint);
 
+                polyline.Points.RemoveAt(polyline.Points.Count - 1);
+                polyline.Points.Add(endPoint);
 
                 UpdateArrowPosition(startPoint, endPoint);
             }
-
         }
         private void UpdateArrowPosition(Point startPoint, Point endPoint)
         {
-
             // Находим угол между узлами
-            double angle = Math.Atan2(endPoint.Y - lines[lines.Count - 1].Y1, endPoint.X - lines[lines.Count - 1].X1) * 180 / Math.PI;
-            
+            double angle = Math.Atan2(endPoint.Y - polyline.Points[polyline.Points.Count-2].Y, endPoint.X - polyline.Points[polyline.Points.Count - 2].X) * 180 / Math.PI;
 
-            Vector direction = new Vector(endPoint.X - lines[lines.Count-1].X1, endPoint.Y - lines[lines.Count - 1].Y1);
-            direction.Normalize(); // Нормализуем вектор, чтобы его длина стала 1
+            Vector direction = new Vector(endPoint.X - polyline.Points[polyline.Points.Count - 2].X, endPoint.Y - polyline.Points[polyline.Points.Count - 2].Y);
+            direction.Normalize();
 
             // Позиционируем стрелку на конце линии
-            Canvas.SetLeft(this, endPoint.X - direction.X*EndNode.ellipse.Width - arrowHead.Width/5);
-            Canvas.SetTop(this, endPoint.Y - direction.Y * EndNode.ellipse.Height - arrowHead.Height/2);
-
+            Canvas.SetLeft(arrowHead, endPoint.X - direction.X * EndNode.ellipse.Width - arrowHead.Width / 5);
+            Canvas.SetTop(arrowHead, endPoint.Y - direction.Y * EndNode.ellipse.Height - arrowHead.Height / 2);
 
             RotateTransform rotateTransform = new RotateTransform(angle);
-
             arrowHead.RenderTransform = rotateTransform;
         }
 
 
         public void PaintTheEdge()
         {
-            for(int i =0; i<lines.Count; i++)
-            {
-                lines[i].Stroke = edgeStroke;
-            }
+            polyline.Stroke = edgeStroke;
             arrowHead.Stroke = edgeStroke;
         }
         public void PaintTheEdge(Brush brush)
         {
-            for (int i = 0; i < lines.Count; i++)
-            {
-                lines[i].Stroke = brush;
-            }
+            polyline.Stroke = brush;
             arrowHead.Stroke = brush;
         }
     }
