@@ -28,25 +28,6 @@ namespace GraphEditor
         }
 
         // Метод для обновления положения линии между узлами
-        public void UpdatePosition(Point endPoint)
-        {
-            if (StartNode != null)
-            {
-                // Получаем центр первого узла
-                Point startPoint = StartNode.ellipse.TranslatePoint(
-                    new Point(StartNode.ellipse.ActualWidth / 2, StartNode.ellipse.ActualHeight / 2),
-                    (UIElement)StartNode.Parent);
-
-
-                // Обновляем координаты линии
-                lines[0].X1 = startPoint.X;
-                lines[0].Y1 = startPoint.Y;
-                lines[lines.Count-1].X2 = endPoint.X;
-                lines[lines.Count - 1].Y2 = endPoint.Y;
-
-            }
-
-        }
 
         public void UpdatePosition()
         {
@@ -66,6 +47,12 @@ namespace GraphEditor
                 lines[lines.Count - 1].X2 = endPoint.X;
                 lines[lines.Count - 1].Y2 = endPoint.Y;
 
+                Debug.WriteLine(lines[0].X1);
+                Debug.WriteLine(lines[0].Y1);
+                Debug.WriteLine(lines[lines.Count - 1].X2);
+                Debug.WriteLine(lines[lines.Count - 1].Y2);
+
+
                 UpdateArrowPosition(startPoint, endPoint);
             }
 
@@ -74,10 +61,10 @@ namespace GraphEditor
         {
 
             // Находим угол между узлами
-            double angle = Math.Atan2(endPoint.Y - startPoint.Y, endPoint.X - startPoint.X) * 180 / Math.PI;
+            double angle = Math.Atan2(endPoint.Y - lines[lines.Count - 1].Y1, endPoint.X - lines[lines.Count - 1].X1) * 180 / Math.PI;
 
 
-            Vector direction = new Vector(endPoint.X - startPoint.X, endPoint.Y - startPoint.Y);
+            Vector direction = new Vector(endPoint.X - lines[lines.Count-1].X1, endPoint.Y - lines[lines.Count - 1].X1);
             direction.Normalize(); // Нормализуем вектор, чтобы его длина стала 1
 
             // Позиционируем стрелку на конце линии

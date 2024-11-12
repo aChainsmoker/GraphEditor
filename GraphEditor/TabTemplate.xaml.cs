@@ -46,7 +46,7 @@ namespace GraphEditor
                 }
                 else if (lastFocusedObject is Edge edge)
                 {
-                    edge.edgeLine.Stroke = edge.edgeStroke;
+                    //edge.edgeLine.Stroke = edge.edgeStroke;
                     edge.arrowHead.Stroke = edge.edgeStroke;
                     return true;
                 }
@@ -120,7 +120,7 @@ namespace GraphEditor
             {
                 Keyboard.ClearFocus();
 
-                edge.edgeLine.Stroke = Brushes.DarkSeaGreen;
+                //edge.edgeLine.Stroke = Brushes.DarkSeaGreen;
                 UpdateGraphStats();
             }
             lastFocusedObject.Focus();
@@ -162,7 +162,6 @@ namespace GraphEditor
 
             edges.Add(edge);
             MainCanvas.Children.Add(edge);
-
 
 
 
@@ -306,7 +305,8 @@ namespace GraphEditor
                 if (lines.Count == 0)
                      line = new Line { Stroke = Brushes.Black, StrokeThickness = 3, X2 = e.GetPosition(MainCanvas).X, Y2 = e.GetPosition(MainCanvas).Y, X1 = startPoint.X, Y1 = startPoint.Y};
                 else
-                    line = new Line { Stroke = Brushes.Black, StrokeThickness = 3, X2 = e.GetPosition(MainCanvas).X, Y2 = e.GetPosition(MainCanvas).Y, X1 = lines[lines.Count-1].X1, Y1 = lines[lines.Count-1].Y1 };
+                    line = new Line { Stroke = Brushes.Black, StrokeThickness = 3, X2 = e.GetPosition(MainCanvas).X, Y2 = e.GetPosition(MainCanvas).Y, X1 = lines[lines.Count-1].X2, Y1 = lines[lines.Count-1].Y2 };
+                MainCanvas.Children.Add(line);
                 lines.Add(line);
             }
 
