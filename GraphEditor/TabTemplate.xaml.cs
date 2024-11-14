@@ -79,6 +79,7 @@ namespace GraphEditor
                     buff = edge.StartNode;
                     edge.StartNode = edge.EndNode;
                     edge.EndNode = buff;
+                    edge.polyline.Points = new PointCollection(edge.polyline.Points.Reverse());
                     edge.UpdatePosition();
                 }
 

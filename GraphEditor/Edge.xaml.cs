@@ -12,6 +12,7 @@ namespace GraphEditor
         public Node EndNode { get; set; }
 
         public bool isOriented = false;
+        public bool isReversed = false;
         public Brush edgeStroke = Brushes.Black;
         public Polyline polyline;
 
@@ -21,8 +22,6 @@ namespace GraphEditor
 
             this.Focusable = true;
             this.FocusVisualStyle = null;
-
-            
 
             polyline = new Polyline
             {
@@ -34,7 +33,7 @@ namespace GraphEditor
             Panel.SetZIndex(arrowHead, 2);
 
             MainGrid.Children.Add(polyline);
-            //arrowHead.Visibility = Visibility.Collapsed;
+            arrowHead.Visibility = Visibility.Collapsed;
         }
 
 
