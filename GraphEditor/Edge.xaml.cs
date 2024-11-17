@@ -15,6 +15,7 @@ namespace GraphEditor
         public bool isReversed = false;
         public Brush edgeStroke = Brushes.Black;
         public Polyline polyline;
+        public List<InflectionNode> inflectionEllipses = new List<InflectionNode>();
 
         public Edge()
         {
@@ -37,9 +38,28 @@ namespace GraphEditor
         }
 
 
+        public void CreateInflectionPoints()
+        {
+            for(int i = 1;i < polyline.Points.Count-1; i++)
+            {
+                InflectionNode ellipse = new InflectionNode { motherEdge = this };
+                inflectionEllipses.Add(ellipse);
+                Canvas.SetLeft(ellipse, polyline.Points[i].X-5.5);
+                Canvas.SetTop(ellipse, polyline.Points[i].Y-6);
+                Panel.SetZIndex(ellipse, 2);
+                MainGrid.Children.Add(ellipse);
+            }
+        }
+
         // Метод для обновления положения линии между узлами
 
-        public void UpdatePosition()
+        public void UpdateAllPositions()
+        {
+            UpdateNodePositions();
+            UpdateMiddlePositions();
+        }
+
+        public void UpdateNodePositions()
         {
             if (StartNode != null && EndNode != null)
             {
@@ -53,7 +73,6 @@ namespace GraphEditor
                     new Point(EndNode.ellipse.ActualWidth / 2, EndNode.ellipse.ActualHeight / 2),
                     (UIElement)EndNode.Parent);
 
-                // Обновляем точки Polyline: начальная, промежуточные и конечная
                 polyline.Points.RemoveAt(0);
 
                 polyline.Points.Insert(0, startPoint);
@@ -64,6 +83,32 @@ namespace GraphEditor
                 UpdateArrowPosition(startPoint, endPoint);
             }
         }
+
+        public void UpdateMiddlePositions()
+        {
+            for(int i =0; i<inflectionEllipses.Count; i++)
+            {
+                InflectionNode ellipse = inflectionEllipses[i];
+                Point point = ellipse.TranslatePoint(new Point(ellipse.ActualWidth / 2,
+                    ellipse.ActualHeight / 2),
+                    (UIElement)EndNode.Parent);
+                polyline.Points.RemoveAt(i + 1);
+                polyline.Points.Insert(i + 1, point);
+            }
+        }
+
+        public void UpdateMiddlePositions(InflectionNode node)
+        {
+            int index = inflectionEllipses.IndexOf(node);
+            InflectionNode ellipse = inflectionEllipses[index];
+            Point point = ellipse.TranslatePoint(new Point(ellipse.ActualWidth / 2,
+                ellipse.ActualHeight / 2),
+                (UIElement)EndNode.Parent);
+            polyline.Points.RemoveAt(index + 1);
+            polyline.Points.Insert(index + 1, point);
+            
+        }
+
         private void UpdateArrowPosition(Point startPoint, Point endPoint)
         {
             // Находим угол между узлами

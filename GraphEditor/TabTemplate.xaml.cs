@@ -80,7 +80,7 @@ namespace GraphEditor
                     edge.StartNode = edge.EndNode;
                     edge.EndNode = buff;
                     edge.polyline.Points = new PointCollection(edge.polyline.Points.Reverse());
-                    edge.UpdatePosition();
+                    edge.UpdateAllPositions();
                 }
 
             }
@@ -158,16 +158,27 @@ namespace GraphEditor
             for(int i =0; i<edgePoints.Count; i++)
                 edge.polyline.Points.Add(edgePoints[i]);
             edge.polyline.Points.Add(phantomPoint);
+
             edgePoints = new List<Point>();
 
             edge.MouseDown += Edge_MouseDown;
             edge.KeyDown += Edge_PressedKey;
+            edge.CreateInflectionPoints();
+
+            for (int i =0; i<edge.inflectionEllipses.Count; i++)
+            {
+                edge.inflectionEllipses[i].MouseMove += Ellipse_MouseMove;
+                edge.inflectionEllipses[i].MouseDown += Ellipse_MouseDown;
+                edge.inflectionEllipses[i].MouseUp += Ellipse_MouseUp;
+            }
 
             edges.Add(edge);
-            //MainCanvas.Children.Add(edge.polyline);
             MainCanvas.Children.Add(edge); // Добавляем Edge на Canvas
 
-            edge.UpdatePosition(); // Устанавливаем начальные точки
+
+            edge.UpdateNodePositions(); // Устанавливаем начальные точки
+
+
             node1.edges.Add(edge);
             node2.edges.Add(edge);
 
@@ -199,9 +210,13 @@ namespace GraphEditor
                 // Обновляем начальную позицию мыши для следующего шага
                 mouseStartPosition = mouseCurrentPosition;
 
-                if (sender is Node node)
+                if (sender is Node node )
                 {
                     UpdateEdgesPosition(node);
+                }
+                else if(sender is InflectionNode ellipse)
+                {
+                    UpdateEdgesPosition(ellipse);            
                 }
             }
         }
@@ -210,13 +225,23 @@ namespace GraphEditor
         {
             for (int i = 0; i < node.edges.Count; i++)
             {
-                node.edges[i].UpdatePosition();
+                node.edges[i].UpdateNodePositions();
             }
+        }
+        private void UpdateEdgesPosition(InflectionNode node)
+        {
+            node.motherEdge.UpdateMiddlePositions(node);
         }
 
         // Обработка отпускания кнопки мыши
         private void Ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            if (sender is Node node)
+                UpdateEdgesPosition(node);
+            else if (sender is InflectionNode inflectionNode)
+                UpdateEdgesPosition(inflectionNode);
+
+
             isDragging = false;   // Прекращаем перемещение
             if (movingObject != null)
             {
@@ -257,6 +282,15 @@ namespace GraphEditor
             }
         }
 
+        private void DeleteEdges(Node node)
+        {
+            for(int i =0; i<node.edges.Count; i++)
+            {
+                edges.Remove(node.edges[i]);
+                MainCanvas.Children.Remove(node.edges[i]);
+                UpdateGraphStats();
+            }
+        }
 
         private void Ellipse_PressedKey(object sender, KeyEventArgs e)
         {
@@ -264,8 +298,11 @@ namespace GraphEditor
             {
                 if (sender is Node node)
                 {
+                    DeleteEdges(node);
+                    nodes.Remove(node);
                     MainCanvas.Children.Remove(node);
                     MainCanvas.Focus();
+                    UpdateGraphStats();
                 }
             }
             if (e.Key == Key.I)
