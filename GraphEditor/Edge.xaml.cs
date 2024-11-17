@@ -1,21 +1,24 @@
-﻿using System.Diagnostics;
+﻿using System;
+using System.Diagnostics;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Xml.Serialization;
 
 namespace GraphEditor
 {
+    [Serializable]
     public partial class Edge : UserControl
     {
         public Node StartNode { get; set; }
         public Node EndNode { get; set; }
 
         public bool isOriented = false;
-        public bool isReversed = false;
         public Brush edgeStroke = Brushes.Black;
         public Polyline polyline;
         public List<InflectionNode> inflectionEllipses = new List<InflectionNode>();
+
 
         public Edge()
         {
@@ -34,9 +37,16 @@ namespace GraphEditor
             Panel.SetZIndex(arrowHead, 2);
 
             MainGrid.Children.Add(polyline);
-            arrowHead.Visibility = Visibility.Collapsed;
+            
         }
 
+        public void SetArrowVisibility()
+        {
+            if(isOriented == true)
+                arrowHead.Visibility = Visibility.Visible;
+            else
+                arrowHead.Visibility = Visibility.Collapsed;
+            }
 
         public void CreateInflectionPoints()
         {
@@ -59,19 +69,31 @@ namespace GraphEditor
             UpdateMiddlePositions();
         }
 
+        private Point LocateStartNode()
+        {
+            Point startPoint = StartNode.ellipse.TranslatePoint(
+                   new Point(StartNode.ellipse.ActualWidth / 2, StartNode.ellipse.ActualHeight / 2),
+                   (UIElement)StartNode.Parent);
+            return startPoint;
+        }
+        private Point LocateEndNode()
+        {
+            Point endPoint = EndNode.ellipse.TranslatePoint(
+                    new Point(EndNode.ellipse.ActualWidth / 2, EndNode.ellipse.ActualHeight / 2),
+                    (UIElement)EndNode.Parent);
+            return endPoint;
+        }
+
+
         public void UpdateNodePositions()
         {
             if (StartNode != null && EndNode != null)
             {
                 // Получаем центр первого узла
-                Point startPoint = StartNode.ellipse.TranslatePoint(
-                    new Point(StartNode.ellipse.ActualWidth / 2, StartNode.ellipse.ActualHeight / 2),
-                    (UIElement)StartNode.Parent);
+                Point startPoint = LocateStartNode();
 
                 // Получаем центр второго узла
-                Point endPoint = EndNode.ellipse.TranslatePoint(
-                    new Point(EndNode.ellipse.ActualWidth / 2, EndNode.ellipse.ActualHeight / 2),
-                    (UIElement)EndNode.Parent);
+                Point endPoint = LocateEndNode();
 
                 polyline.Points.RemoveAt(0);
 
@@ -93,8 +115,9 @@ namespace GraphEditor
                     ellipse.ActualHeight / 2),
                     (UIElement)EndNode.Parent);
                 polyline.Points.RemoveAt(i + 1);
-                polyline.Points.Insert(i + 1, point);
+                polyline.Points.Insert(i + 1, point);  
             }
+            UpdateArrowPosition(LocateStartNode(), LocateEndNode());
         }
 
         public void UpdateMiddlePositions(InflectionNode node)
@@ -106,7 +129,9 @@ namespace GraphEditor
                 (UIElement)EndNode.Parent);
             polyline.Points.RemoveAt(index + 1);
             polyline.Points.Insert(index + 1, point);
-            
+
+            if (index == inflectionEllipses.Count - 1)
+                UpdateArrowPosition(LocateStartNode(), LocateEndNode());
         }
 
         private void UpdateArrowPosition(Point startPoint, Point endPoint)
@@ -136,6 +161,36 @@ namespace GraphEditor
             polyline.Stroke = brush;
             arrowHead.Stroke = brush;
         }
+
+        public SerializableEdge ToSerializableEdge(Dictionary<Node, int> nodeIdMap)
+        {
+            return new SerializableEdge
+            {
+                StartNodeId = nodeIdMap[StartNode],
+                EndNodeId = nodeIdMap[EndNode],
+                IsOriented = isOriented,
+                InflectionPoints = polyline.Points.Select(p => new Point(p.X, p.Y)).ToList()
+
+            };
+        }
+
+        public static Edge FromSerializableEdge(SerializableEdge serializableEdge, Dictionary<int, Node> nodeMap)
+        {
+            var edge = new Edge
+            {
+                StartNode = nodeMap[serializableEdge.StartNodeId],
+                EndNode = nodeMap[serializableEdge.EndNodeId],
+                isOriented = serializableEdge.IsOriented
+            };
+
+            foreach (var point in serializableEdge.InflectionPoints)
+            {
+                edge.polyline.Points.Add(point);
+            }
+            edge.SetArrowVisibility();
+            return edge;
+        }
+
     }
 }
 

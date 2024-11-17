@@ -6,10 +6,12 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
+using System.Xml.Serialization;
 
 
 namespace GraphEditor
 {
+    [Serializable]
     public partial class Node : UserControl
     {
         public List<Edge> edges;
@@ -40,7 +42,26 @@ namespace GraphEditor
             set { ellipse.Fill = value; }
         }
 
+        public SerializableNode ToSerializableNode(int id)
+        {
+            return new SerializableNode
+            {
+                Id = id,
+                EllipseName = EllipseName,
+                X = Canvas.GetLeft(this),
+                Y = Canvas.GetTop(this)
+            };
+        }
 
-
+        public static Node FromSerializableNode(SerializableNode serializableNode)
+        {
+            var node = new Node
+            {
+                EllipseName = serializableNode.EllipseName
+            };
+            Canvas.SetLeft(node, serializableNode.X);
+            Canvas.SetTop(node, serializableNode.Y);
+            return node;
+        }
     }
 }
