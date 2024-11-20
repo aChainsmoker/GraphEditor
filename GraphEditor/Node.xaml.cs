@@ -49,7 +49,8 @@ namespace GraphEditor
                 Id = id,
                 EllipseName = EllipseName,
                 X = Canvas.GetLeft(this),
-                Y = Canvas.GetTop(this)
+                Y = Canvas.GetTop(this),
+                NodeStroke = nodeStroke,
             };
         }
 
@@ -57,7 +58,8 @@ namespace GraphEditor
         {
             var node = new Node
             {
-                EllipseName = serializableNode.EllipseName
+                EllipseName = serializableNode.EllipseName,
+                nodeStroke = serializableNode.NodeStroke,
             };
             Canvas.SetLeft(node, serializableNode.X);
             Canvas.SetTop(node, serializableNode.Y);

@@ -14,6 +14,7 @@ using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Navigation;
 using System.Windows.Shapes;
+using System.Xml.Linq;
 using System.Xml.Serialization;
 
 
@@ -106,7 +107,16 @@ namespace GraphEditor
                     edge.inflectionEllipses.Reverse();
                     edge.UpdateAllPositions();
                 }
-
+            }
+            else if (e.Key == Key.D)
+            {
+                if(sender is Edge edge)
+                {
+                    edge.StartNode.edges.Remove(edge);
+                    edge.EndNode.edges.Remove(edge);
+                    edges.Remove(edge);
+                    MainCanvas.Children.Remove(edge);
+                }
             }
         }
 
@@ -183,19 +193,31 @@ namespace GraphEditor
                 isOriented = isOriented
             };
 
-
-            for(int i =0; i<edgePoints.Count; i++)
+            for (int i = 0; i < edgePoints.Count; i++)
                 edge.polyline.Points.Add(edgePoints[i]);
             edge.SetArrowVisibility();
 
 
             edgePoints = new List<Point>();
 
+            return SetUpEdge(edge);
+        }
+
+        private Edge CreateEdge(Edge edge)
+        {
+            return SetUpEdge(edge);
+        }
+
+
+        private Edge SetUpEdge(Edge edge)
+        {
+
             edge.MouseDown += Edge_MouseDown;
             edge.KeyDown += Edge_PressedKey;
             edge.CreateInflectionPoints();
+            edge.PaintTheEdge();
 
-            for (int i =0; i<edge.inflectionEllipses.Count; i++)
+            for (int i = 0; i < edge.inflectionEllipses.Count; i++)
             {
                 edge.inflectionEllipses[i].MouseMove += Ellipse_MouseMove;
                 edge.inflectionEllipses[i].MouseDown += Ellipse_MouseDown;
@@ -203,15 +225,12 @@ namespace GraphEditor
             }
 
             edges.Add(edge);
-            MainCanvas.Children.Add(edge); // Добавляем Edge на Canvas
-
-            node1.edges.Add(edge);
-            node2.edges.Add(edge);
+            MainCanvas.Children.Add(edge);
+            edge.StartNode.edges.Add(edge);
+            edge.EndNode.edges.Add(edge);
 
             return edge;
         }
-
-
 
         // Обработка перемещения мыши
         private void Ellipse_MouseMove(object sender, MouseEventArgs e)
@@ -282,6 +301,7 @@ namespace GraphEditor
             newNode.MouseUp += Ellipse_MouseUp;
             newNode.MouseMove += Ellipse_MouseMove;
             newNode.KeyDown += Ellipse_PressedKey;
+            newNode.ellipse.Stroke = newNode.nodeStroke;
 
             // Добавляем новый эллипс на Canvas
             MainCanvas.Children.Add(newNode);
@@ -423,8 +443,10 @@ namespace GraphEditor
                 Edge edge = Edge.FromSerializableEdge(serializableEdge, nodeMap);
                 for (int i = 0; i < edge.polyline.Points.Count; i++)
                     edgePoints.Add(edge.polyline.Points[i]);
-                CreateEdge(edge.StartNode, edge.EndNode, edge.isOriented);
+                CreateEdge(edge).UpdateNodePositions();
             }
+
+            UpdateGraphStats();
         }
     }
 }

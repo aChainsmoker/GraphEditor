@@ -4,6 +4,7 @@ using System.Windows;
 using System.Windows.Controls;
 using System.Windows.Media;
 using System.Windows.Shapes;
+using System.Windows.Threading;
 using System.Xml.Serialization;
 
 namespace GraphEditor
@@ -37,7 +38,6 @@ namespace GraphEditor
             Panel.SetZIndex(arrowHead, 2);
 
             MainGrid.Children.Add(polyline);
-            
         }
 
         public void SetArrowVisibility()
@@ -95,6 +95,15 @@ namespace GraphEditor
                 // Получаем центр второго узла
                 Point endPoint = LocateEndNode();
 
+                if (startPoint == new Point(0, 0) && endPoint == new Point(0, 0))
+                    WaitUntilRenderComplete(() =>
+                    {
+                        startPoint = LocateStartNode();
+
+                        // Получаем центр второго узла
+                        endPoint = LocateEndNode();
+                    });
+
                 polyline.Points.RemoveAt(0);
 
                 polyline.Points.Insert(0, startPoint);
@@ -102,7 +111,8 @@ namespace GraphEditor
                 polyline.Points.RemoveAt(polyline.Points.Count - 1);
                 polyline.Points.Add(endPoint);
 
-                UpdateArrowPosition(startPoint, endPoint);
+                
+                    UpdateArrowPosition(startPoint, endPoint);
             }
         }
 
@@ -136,11 +146,13 @@ namespace GraphEditor
 
         private void UpdateArrowPosition(Point startPoint, Point endPoint)
         {
+
             // Находим угол между узлами
             double angle = Math.Atan2(endPoint.Y - polyline.Points[polyline.Points.Count-2].Y, endPoint.X - polyline.Points[polyline.Points.Count - 2].X) * 180 / Math.PI;
 
             Vector direction = new Vector(endPoint.X - polyline.Points[polyline.Points.Count - 2].X, endPoint.Y - polyline.Points[polyline.Points.Count - 2].Y);
             direction.Normalize();
+
 
             // Позиционируем стрелку на конце линии
             Canvas.SetLeft(arrowHead, endPoint.X - direction.X * EndNode.ellipse.Width - arrowHead.Width / 5);
@@ -169,7 +181,8 @@ namespace GraphEditor
                 StartNodeId = nodeIdMap[StartNode],
                 EndNodeId = nodeIdMap[EndNode],
                 IsOriented = isOriented,
-                InflectionPoints = polyline.Points.Select(p => new Point(p.X, p.Y)).ToList()
+                InflectionPoints = polyline.Points.Select(p => new Point(p.X, p.Y)).ToList(),
+                EdgeStroke = edgeStroke,
 
             };
         }
@@ -180,7 +193,8 @@ namespace GraphEditor
             {
                 StartNode = nodeMap[serializableEdge.StartNodeId],
                 EndNode = nodeMap[serializableEdge.EndNodeId],
-                isOriented = serializableEdge.IsOriented
+                isOriented = serializableEdge.IsOriented,
+                edgeStroke = serializableEdge.EdgeStroke,
             };
 
             foreach (var point in serializableEdge.InflectionPoints)
@@ -190,6 +204,14 @@ namespace GraphEditor
             edge.SetArrowVisibility();
             return edge;
         }
+
+        public void WaitUntilRenderComplete(Action action)
+        {
+            // Убедиться, что код будет выполнен после того, как все UI элементы будут отрисованы
+            Dispatcher.Invoke(() => { }, DispatcherPriority.Render);
+            action();  // Выполнение необходимого кода после завершения отрисовки
+        }
+
 
     }
 }
