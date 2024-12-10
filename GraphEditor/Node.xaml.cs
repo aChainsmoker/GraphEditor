@@ -16,6 +16,7 @@ namespace GraphEditor
     {
         public List<Edge> edges;
         public Brush nodeStroke = Brushes.Black;
+        public bool isChecked;
 
         public Node()
         {

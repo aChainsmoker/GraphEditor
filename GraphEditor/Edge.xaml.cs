@@ -105,14 +105,12 @@ namespace GraphEditor
                     });
 
                 polyline.Points.RemoveAt(0);
-
                 polyline.Points.Insert(0, startPoint);
-
                 polyline.Points.RemoveAt(polyline.Points.Count - 1);
                 polyline.Points.Add(endPoint);
 
                 
-                    UpdateArrowPosition(startPoint, endPoint);
+                UpdateArrowPosition(startPoint, endPoint);
             }
         }
 

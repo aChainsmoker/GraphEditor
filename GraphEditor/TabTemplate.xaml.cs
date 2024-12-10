@@ -22,23 +22,23 @@ namespace GraphEditor
 {
     public partial class TabTemplate : UserControl
     {
-        public TabTemplate()
-        {
-            InitializeComponent();
-        }
-
         private bool isDragging = false;      // Флаг, указывающий, происходит ли перемещение
         private Point mouseStartPosition;     // Начальная позиция мыши
         private UIElement movingObject;       // Объект, который мы перемещаем
         private UIElement lastFocusedObject;
-        private List<Node> nodes = new List<Node>();
-        private List<Edge> edges = new List<Edge>();
+        private Graph graph = new Graph();
         private List<Point> edgePoints = new List<Point>();
 
         private Node selectedNode1;
         private Node selectedNode2;
         private bool isSelectingEdges = false; // Флаг для режима выбора рёбер
-        private bool pointWasAssigned = false;
+        public TabTemplate()
+        {
+            InitializeComponent();
+            graph.AddingEdge += CreateEdge;
+        }
+
+        
         private bool ClearFocusLighting()
         {
             if (lastFocusedObject != null)
@@ -60,27 +60,27 @@ namespace GraphEditor
 
         public void SaveGraphToXml(string filePath, List<Node> nodes, List<Edge> edges)
         {
-            SerializableGraph graph = new SerializableGraph();
+            SerializableGraph serializableGraph = new SerializableGraph();
             Dictionary<Node,int> nodeIdMap = new Dictionary<Node, int>();
 
             // Конвертируем узлы
             for (int i = 0; i < nodes.Count; i++)
             {
                 nodeIdMap[nodes[i]] = i;
-                graph.Nodes.Add(nodes[i].ToSerializableNode(i));
+                serializableGraph.Nodes.Add(nodes[i].ToSerializableNode(i));
             }
 
             // Конвертируем рёбра
             foreach (Edge edge in edges)
             {
-                graph.Edges.Add(edge.ToSerializableEdge(nodeIdMap));
+                serializableGraph.Edges.Add(edge.ToSerializableEdge(nodeIdMap));
             }
 
             // Сохраняем в XML
             var serializer = new XmlSerializer(typeof(SerializableGraph));
             using (var writer = new StreamWriter(filePath))
             {
-                serializer.Serialize(writer, graph);
+                serializer.Serialize(writer, serializableGraph);
             }
         }
 
@@ -114,7 +114,7 @@ namespace GraphEditor
                 {
                     edge.StartNode.edges.Remove(edge);
                     edge.EndNode.edges.Remove(edge);
-                    edges.Remove(edge);
+                    graph.RemoveEdge(edge);
                     MainCanvas.Children.Remove(edge);
                 }
             }
@@ -165,14 +165,11 @@ namespace GraphEditor
             if (selectedNode1 == null)
             {
                 selectedNode1 = node;
-                pointWasAssigned = true;
             }
             else
             {
                 selectedNode2 = node;
-
-                Point phantomPoint = new Point();
-                    edgePoints.Add(phantomPoint);
+                
                 CreateEdge(selectedNode1, selectedNode2, false).UpdateNodePositions();
                 // Сбрасываем выбранные узлы после создания дуги
                 selectedNode1 = null;
@@ -184,7 +181,9 @@ namespace GraphEditor
 
         private Edge CreateEdge(Node node1, Node node2, bool isOriented)
         {
-
+            
+            Point phantomPoint = new Point();
+            edgePoints.Add(phantomPoint);
             // Создаем новый экземпляр Edge
             Edge edge = new Edge
             {
@@ -195,10 +194,6 @@ namespace GraphEditor
 
             for (int i = 0; i < edgePoints.Count; i++)
                 edge.polyline.Points.Add(edgePoints[i]);
-            edge.SetArrowVisibility();
-
-
-            edgePoints = new List<Point>();
 
             return SetUpEdge(edge);
         }
@@ -211,9 +206,10 @@ namespace GraphEditor
 
         private Edge SetUpEdge(Edge edge)
         {
-
+            edgePoints = new List<Point>();
             edge.MouseDown += Edge_MouseDown;
             edge.KeyDown += Edge_PressedKey;
+            edge.SetArrowVisibility();
             edge.CreateInflectionPoints();
             edge.PaintTheEdge();
 
@@ -224,10 +220,11 @@ namespace GraphEditor
                 edge.inflectionEllipses[i].MouseUp += Ellipse_MouseUp;
             }
 
-            edges.Add(edge);
+            graph.AddEdge(edge);
             MainCanvas.Children.Add(edge);
             edge.StartNode.edges.Add(edge);
             edge.EndNode.edges.Add(edge);
+            edge.UpdateNodePositions();
 
             return edge;
         }
@@ -305,7 +302,7 @@ namespace GraphEditor
 
             // Добавляем новый эллипс на Canvas
             MainCanvas.Children.Add(newNode);
-            nodes.Add(newNode);
+            graph.AddNode(newNode);
         }
         private void Canvas_PressedKey(object sender, KeyEventArgs e)
         {
@@ -332,19 +329,43 @@ namespace GraphEditor
             }
             else if(e.Key == Key.L)
             {
-                SaveGraphToXml("graph.xml", nodes, edges);
+                SaveGraphToXml("graph.xml", graph.Nodes, graph.Edges);
             }
             else if(e.Key == Key.M)
             {
-                LoadGraphFromXml("graph.xml", MainCanvas, nodes, edges);
+                LoadGraphFromXml("graph.xml", MainCanvas, graph.Nodes, graph.Edges);
+            }
+            else if(e.Key == Key.C)
+            {
+                string message = string.Empty;
+                if (GraphConnectivityChecker.CheckGraphConnectivity(graph))
+                    message = "Граф связный";
+                else
+                    message = "Граф несвязный";
+                MessageBox.Show(message, "Проверка на графа на связность", MessageBoxButton.OK, MessageBoxImage.Information);
+
+            }
+            else if (e.Key == Key.F)
+            {
+                GraphConnectivityChecker.FixGraphConnectivity(graph);
+            }
+            else if (e.Key == Key.E)
+            {
+                ShowEulerianCycles(graph);
             }
         }
-
+        
+        private void ShowEulerianCycles(Graph graph)
+        {
+                var window = new EulerianCyclesWindow(EulerianCycleFinder.FindEulerianCycles(graph));
+                window.ShowDialog();
+        }
+        
         private void DeleteEdges(Node node)
         {
             for(int i =0; i<node.edges.Count; i++)
             {
-                edges.Remove(node.edges[i]);
+                graph.RemoveEdge(node.edges[i]);
                 MainCanvas.Children.Remove(node.edges[i]);
                 UpdateGraphStats();
             }
@@ -357,7 +378,7 @@ namespace GraphEditor
                 if (sender is Node node)
                 {
                     DeleteEdges(node);
-                    nodes.Remove(node);
+                    graph.RemoveNode(node);
                     MainCanvas.Children.Remove(node);
                     MainCanvas.Focus();
                     UpdateGraphStats();
@@ -382,8 +403,8 @@ namespace GraphEditor
 
         private void UpdateGraphStats()
         {
-            NodeCountText.Text = "В графе " + nodes.Count + " вершин";
-            EdgeCountText.Text = "В графе " + edges.Count + " дуг";
+            NodeCountText.Text = "В графе " + graph.Nodes.Count + " вершин";
+            EdgeCountText.Text = "В графе " + graph.Edges.Count + " дуг";
             if (lastFocusedObject is Node node)
                 NodeMultiplicityCountText.Text = "Степень данной вершины: " + node.edges.Count;
             else
@@ -416,7 +437,7 @@ namespace GraphEditor
         public void LoadGraphFromXml(string filePath, Canvas canvas, List<Node> nodes, List<Edge> edges)
         {
             XmlSerializer serializer = new XmlSerializer(typeof(SerializableGraph));
-            SerializableGraph graph;
+            SerializableGraph serializableGraph;
 
             canvas.Children.Clear();
             nodes.Clear();
@@ -424,13 +445,13 @@ namespace GraphEditor
 
             using (StreamReader reader = new StreamReader(filePath))
             {
-                graph = (SerializableGraph)serializer.Deserialize(reader);
+                serializableGraph = (SerializableGraph)serializer.Deserialize(reader);
             }
 
             Dictionary<int, Node> nodeMap = new Dictionary<int, Node>();
 
             // Восстанавливаем узлы
-            foreach (SerializableNode serializableNode in graph.Nodes)
+            foreach (SerializableNode serializableNode in serializableGraph.Nodes)
             {
                 Node node = Node.FromSerializableNode(serializableNode);
                 nodeMap[serializableNode.Id] = node;
@@ -438,7 +459,7 @@ namespace GraphEditor
             }
 
             // Восстанавливаем рёбра
-            foreach (SerializableEdge serializableEdge in graph.Edges)
+            foreach (SerializableEdge serializableEdge in serializableGraph.Edges)
             {
                 Edge edge = Edge.FromSerializableEdge(serializableEdge, nodeMap);
                 for (int i = 0; i < edge.polyline.Points.Count; i++)

@@ -3,8 +3,6 @@
              xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
              ContextMenu="{StaticResource ColorContextMenu}">
     <Canvas Name="MainGrid">
-        <!--<Line  x:Name="edgeLine" Stroke="Black" StrokeThickness="3" X1="50" X2="50" Y1="50" Y2="20" >
-        </Line>-->
             <Polygon Points="0,0 0,20 17.32,10" x:Name="arrowHead" 
                  
               Stroke="Black" 
