@@ -40,5 +40,43 @@ namespace GraphEditor
             for(int i =0; i < nodes.Count; i++)
                 nodes[i].isChecked = false;
         }
+
+        public Edge FindEdgeBetweenNodes(Node node1, Node node2)
+        {
+            for (int i = 0; i < edges.Count; i++)
+            {
+                if (edges[i].isOriented == false)
+                {
+                    if ((edges[i].StartNode == node1 && edges[i].EndNode == node2) ||
+                        (edges[i].StartNode == node2 && edges[i].EndNode == node1))
+                        return edges[i];
+                }
+                else
+                {
+                    if (edges[i].StartNode == node1 && edges[i].EndNode == node2)
+                        return edges[i];  
+                }
+            }
+            return null;
+        }
+
+        public List<Edge> FindAvailableEdges(Node node)
+        {
+            List<Edge> availableEdges = new List<Edge>();
+            for (int i = 0; i < edges.Count; i++)
+            {
+                if (edges[i].isOriented == false)
+                {
+                    if (edges[i].StartNode == node || edges[i].EndNode == node)
+                        availableEdges.Add(edges[i]);
+                }
+                else
+                {
+                    if (edges[i].StartNode == node)
+                        availableEdges.Add(edges[i]);  
+                }
+            }
+            return availableEdges;
+        }
     }
 }

@@ -11,6 +11,7 @@ public partial class EdgeWeightWindow : Window
     public EdgeWeightWindow()
     {
         InitializeComponent();
+        weightInputTextbox.Focus();
     }
     
     private void OnOkButtonClick(object sender, RoutedEventArgs e)

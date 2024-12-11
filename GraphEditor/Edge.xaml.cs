@@ -199,6 +199,13 @@ namespace GraphEditor
             arrowHead.Stroke = brush;
         }
 
+        public Node GetSecondNode(Node node)
+        {
+            if (StartNode == node)
+                return EndNode;
+            else
+                return StartNode;
+        }
         public SerializableEdge ToSerializableEdge(Dictionary<Node, int> nodeIdMap)
         {
             return new SerializableEdge
@@ -208,6 +215,7 @@ namespace GraphEditor
                 IsOriented = isOriented,
                 InflectionPoints = polyline.Points.Select(p => new Point(p.X, p.Y)).ToList(),
                 EdgeStroke = edgeStroke,
+                Weight = weight
 
             };
         }
@@ -220,6 +228,7 @@ namespace GraphEditor
                 EndNode = nodeMap[serializableEdge.EndNodeId],
                 isOriented = serializableEdge.IsOriented,
                 edgeStroke = serializableEdge.EdgeStroke,
+                Weight = serializableEdge.Weight
             };
 
             foreach (var point in serializableEdge.InflectionPoints)

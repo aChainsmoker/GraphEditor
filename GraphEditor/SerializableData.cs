@@ -15,6 +15,7 @@ namespace GraphEditor
         public List<Point> InflectionPoints { get; set; } = new List<Point>();
 
         public string StrokeColorString { get; set; }
+        public int Weight { get; set; }
 
         [XmlIgnore]
         public Brush EdgeStroke

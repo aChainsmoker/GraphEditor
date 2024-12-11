@@ -66,5 +66,45 @@ namespace GraphEditor
             Canvas.SetTop(node, serializableNode.Y);
             return node;
         }
+
+        public List<Node> GetListOfAvailableNodes()
+        {
+            List<Node> nodes = new List<Node>();
+            for (int i = 0; i < edges.Count; i++)
+            {
+                Node newNode;
+                if (edges[i].isOriented == false)
+                {
+                    newNode = edges[i].StartNode == this? edges[i].EndNode : edges[i].StartNode;
+                }
+                else
+                {
+                    if(edges[i].EndNode != this)
+                        newNode = edges[i].EndNode;
+                    else
+                        continue;
+                }
+                nodes.Add(newNode);
+            }
+            return nodes;
+        }
+        public List<Edge> GetListOfAvailableEdges()
+        {
+            List<Edge> availableEdges = new List<Edge>();
+            for (int i = 0; i < edges.Count; i++)
+            {
+                if (edges[i].isOriented == false)
+                {
+                    if (edges[i].StartNode == this || edges[i].EndNode == this)
+                        availableEdges.Add(edges[i]);
+                }
+                else
+                {
+                    if (edges[i].StartNode == this)
+                        availableEdges.Add(edges[i]);  
+                }
+            }
+            return availableEdges;
+        }
     }
 }

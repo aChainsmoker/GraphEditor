@@ -32,6 +32,7 @@ namespace GraphEditor
         private Node selectedNode1;
         private Node selectedNode2;
         private bool isSelectingEdges = false; // Флаг для режима выбора рёбер
+        private bool isSelectingNodesForPathFinding = false;
         public TabTemplate()
         {
             InitializeComponent();
@@ -155,10 +156,28 @@ namespace GraphEditor
 
                 if (isSelectingEdges)
                     SelectNodeForEdgeCreating(node);
+                if (isSelectingNodesForPathFinding)
+                    SelectNodeForPathFinding(node);
             }
             movingObject.Focus();
         }
 
+        private void SelectNodeForPathFinding(Node node)
+        {
+            if (selectedNode1 == null)
+            {
+                selectedNode1 = node;
+            }
+            else
+            {
+                selectedNode2 = node;
+                
+                PathFinder.FindShortestWay(graph, selectedNode1, selectedNode2);
+                selectedNode1 = null;
+                selectedNode2 = null;
+            }
+        }
+        
         private void Edge_MouseDown(object sender, MouseButtonEventArgs e)
         {
 
@@ -339,6 +358,12 @@ namespace GraphEditor
             else if (e.Key == Key.R)
             {
                 isSelectingEdges = !isSelectingEdges;
+                selectedNode1 = null;
+                selectedNode2 = null;
+            }
+            else if (e.Key == Key.Q)
+            {
+                isSelectingNodesForPathFinding = !isSelectingNodesForPathFinding;
                 selectedNode1 = null;
                 selectedNode2 = null;
             }
