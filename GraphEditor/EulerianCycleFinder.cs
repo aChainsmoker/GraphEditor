@@ -13,8 +13,32 @@ namespace GraphEditor
         private static List<List<Node>> eulerianCycles = new List<List<Node>>();
 
 
+        private static bool isEulerian(Graph graph)
+        {
+            if (GraphConnectivityChecker.CheckGraphConnectivity(graph) == false)
+                return false;
+            for (int i = 0; i < graph.Nodes.Count; i++)
+            {
+                int amountOfUnmatchedEdges = 0;
+                if(graph.Nodes[i].edges.Count % 2 != 0)
+                    return false;
+                for (int j = 0; j < graph.Nodes[i].edges.Count; j++)
+                {
+                    if (graph.Nodes[i].edges[j].isOriented == true)
+                    {
+                        amountOfUnmatchedEdges = graph.Nodes[i].edges[j].StartNode == graph.Nodes[i]? amountOfUnmatchedEdges + 1 : amountOfUnmatchedEdges - 1;
+                    }
+                }
+                if(amountOfUnmatchedEdges != 0)
+                    return false;
+            }
+
+            return true;
+        }
         public static List<List<Node>> FindEulerianCycles(Graph graph)
         {
+            if (isEulerian(graph) == false)
+                return null;
             eulerianCycles.Clear();
             for (int i = 0; i < graph.Nodes.Count; i++)
             {

@@ -14,6 +14,7 @@ namespace GraphEditor
 
         private void DisplayCycles(List<List<Node>> cycles)
         {
+            
             var sb = new StringBuilder();
 
             for (int i = 0; i < cycles.Count; i++)

@@ -356,9 +356,17 @@ namespace GraphEditor
         }
         
         private void ShowEulerianCycles(Graph graph)
-        {
-                var window = new EulerianCyclesWindow(EulerianCycleFinder.FindEulerianCycles(graph));
-                window.ShowDialog();
+        {     
+            List<List<Node>> eulerianCycles = EulerianCycleFinder.FindEulerianCycles(graph);
+            if (eulerianCycles == null)
+            {
+                MessageBox.Show("Граф не удовлетворяет условиям существования Эйлерова цикла", "Ошибка",
+                    MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            var window = new EulerianCyclesWindow(eulerianCycles);
+            window.ShowDialog();
         }
         
         private void DeleteEdges(Node node)

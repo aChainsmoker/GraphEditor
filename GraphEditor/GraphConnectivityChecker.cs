@@ -15,10 +15,9 @@ namespace GraphEditor
             for (int i = 0; i < graph.Nodes.Count; i++)
             {
                 if(CheckNodeConnectivity(graph.Nodes[i], graph.Nodes) == false)
-                    return false;
+                {graph.ResetNodesChecks();return false;}
                 graph.ResetNodesChecks();
             }
-            graph.ResetNodesChecks();
             return true;
         }
 
