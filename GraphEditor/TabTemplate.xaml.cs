@@ -118,6 +118,21 @@ namespace GraphEditor
                     MainCanvas.Children.Remove(edge);
                 }
             }
+            else if (e.Key == Key.I)
+            {
+                // Открываем диалог для ввода имени
+                EdgeWeightWindow dialog = new EdgeWeightWindow();
+                if (dialog.ShowDialog() == true)
+                {
+                    // Если окно закрыто и введено имя, можно изменить его в узле
+                    int weight = dialog.Weight;
+
+                    // Найдите ваш узел, к которому хотите применить имя, и присвойте его
+                    // Пример: Если у вас есть ссылка на текущий узел
+                    Edge currentEdge = sender as Edge; // Получите ссылку на нужный узел
+                    currentEdge.Weight = weight;
+                }
+            }
         }
 
 

@@ -20,16 +20,24 @@ namespace GraphEditor
             for (int i = 0; i < graph.Nodes.Count; i++)
             {
                 int amountOfUnmatchedEdges = 0;
-                if(graph.Nodes[i].edges.Count % 2 != 0)
-                    return false;
+                int amountOfCycles = 0;
+                
                 for (int j = 0; j < graph.Nodes[i].edges.Count; j++)
                 {
+                    if (graph.Nodes[i].edges[j].StartNode == graph.Nodes[i] &&
+                        graph.Nodes[i].edges[j].EndNode == graph.Nodes[i])
+                    {
+                        amountOfCycles++;
+                        continue;
+                    }
                     if (graph.Nodes[i].edges[j].isOriented == true)
                     {
                         amountOfUnmatchedEdges = graph.Nodes[i].edges[j].StartNode == graph.Nodes[i]? amountOfUnmatchedEdges + 1 : amountOfUnmatchedEdges - 1;
                     }
                 }
                 if(amountOfUnmatchedEdges != 0)
+                    return false;
+                if((graph.Nodes[i].edges.Count - amountOfCycles) % 2 != 0)
                     return false;
             }
 

@@ -12,10 +12,12 @@ namespace GraphEditor
     [Serializable]
     public partial class Edge : UserControl
     {
+        private int weight;
         public Node StartNode { get; set; }
         public Node EndNode { get; set; }
 
         public bool isOriented = false;
+        public int Weight {get => weight; set {weight = value; weightTextBlock.Text = value.ToString();} }
         public Brush edgeStroke = Brushes.Black;
         public Polyline polyline;
         public List<InflectionNode> inflectionEllipses = new List<InflectionNode>();
@@ -46,7 +48,7 @@ namespace GraphEditor
                 arrowHead.Visibility = Visibility.Visible;
             else
                 arrowHead.Visibility = Visibility.Collapsed;
-            }
+        }
 
         public void CreateInflectionPoints()
         {
@@ -111,6 +113,7 @@ namespace GraphEditor
 
                 
                 UpdateArrowPosition(startPoint, endPoint);
+                UpdateWeightPosition();
             }
         }
 
@@ -126,6 +129,7 @@ namespace GraphEditor
                 polyline.Points.Insert(i + 1, point);  
             }
             UpdateArrowPosition(LocateStartNode(), LocateEndNode());
+            UpdateWeightPosition();
         }
 
         public void UpdateMiddlePositions(InflectionNode node)
@@ -140,8 +144,31 @@ namespace GraphEditor
 
             if (index == inflectionEllipses.Count - 1)
                 UpdateArrowPosition(LocateStartNode(), LocateEndNode());
+            if(index == inflectionEllipses.Count / 2 - 1 || index == inflectionEllipses.Count / 2)
+                UpdateWeightPosition();
         }
 
+        private void UpdateWeightPosition()
+        {
+            int middleInflectionPoint = polyline.Points.Count / 2 - 1;
+            // Point positionOfTheFirstMiddleInflectionPoint = new Point(Canvas.GetLeft(inflectionEllipses[middleInflectionPoint]), Canvas.GetTop(inflectionEllipses[middleInflectionPoint]));
+            // Point positionOfTheSecondMiddleInflectionPoint = new Point(Canvas.GetLeft(inflectionEllipses[middleInflectionPoint+1]), Canvas.GetTop(inflectionEllipses[middleInflectionPoint+1]));     
+            Point positionOfTheFirstMiddleInflectionPoint = polyline.TranslatePoint(
+                new Point(polyline.Points[middleInflectionPoint].X, polyline.Points[middleInflectionPoint].Y), 
+                (UIElement)polyline.Parent);
+
+            Point positionOfTheSecondMiddleInflectionPoint = polyline.TranslatePoint(
+                new Point(polyline.Points[middleInflectionPoint + 1].X, polyline.Points[middleInflectionPoint + 1].Y), 
+                (UIElement)polyline.Parent);
+            
+            Vector vector = (positionOfTheSecondMiddleInflectionPoint - positionOfTheFirstMiddleInflectionPoint);
+            
+            Point newWeightPosition =  positionOfTheFirstMiddleInflectionPoint + vector/2 ;
+            Canvas.SetLeft(weightTextBlock, newWeightPosition.X - weightTextBlock.ActualWidth / 2);
+            Canvas.SetTop(weightTextBlock, newWeightPosition.Y - weightTextBlock.ActualHeight / 2);
+
+        }
+        
         private void UpdateArrowPosition(Point startPoint, Point endPoint)
         {
 
