@@ -17,6 +17,7 @@ using System.Windows.Shapes;
 using System.Xml.Linq;
 using System.Xml.Serialization;
 using Microsoft.Win32;
+using Path = System.Windows.Shapes.Path;
 
 
 namespace GraphEditor
@@ -38,10 +39,13 @@ namespace GraphEditor
         private int foundPathIndex;
 
         private List<Dictionary<Node, Edge>> paths; //Временное решение
+        private int theShortestCost;
         public TabTemplate()
         {
             InitializeComponent();
             graph.AddingEdge += CreateEdge;
+            UpdateModesStatus();
+            UpdatePathCost(0, false);
         }
 
         
@@ -89,6 +93,9 @@ namespace GraphEditor
             {
                 serializer.Serialize(writer, serializableGraph);
             }
+            
+            TabItem tabItem = GetTab();
+            tabItem.Header = System.IO.Path.GetFileNameWithoutExtension(filePath);
         }
 
 
@@ -115,7 +122,7 @@ namespace GraphEditor
                     edge.UpdateAllPositions();
                 }
             }
-            else if (e.Key == Key.D)
+            else if (e.Key == Key.Delete)
             {
                 if(sender is Edge edge)
                 {
@@ -177,17 +184,17 @@ namespace GraphEditor
             else
             {
                 selectedNode2 = node;
-                if(isSelectingNodesForTheShortestPathFinding)
-                {
-                    Dictionary<Node, Edge> path = PathFinder.FindShortestWay(graph, selectedNode1, selectedNode2);
-                    ShowTheShortestWay(path);
-                }
-
                 if (isSelectingNodesFortPathFinding)
                 {
                     foundPathIndex = 0;
+                    theShortestCost = PathFinder.AssessThePath(PathFinder.FindShortestWay(graph, selectedNode1, selectedNode2));
                     paths = PathFinder.FindAllPaths(graph, selectedNode1, selectedNode2);
                     ShowTheWay(paths, foundPathIndex);
+                }
+                else if(isSelectingNodesForTheShortestPathFinding)
+                {
+                    Dictionary<Node, Edge> path = PathFinder.FindShortestWay(graph, selectedNode1, selectedNode2);
+                    ShowTheShortestWay(path);
                 }
                 selectedNode1 = null;
                 selectedNode2 = null;
@@ -198,14 +205,22 @@ namespace GraphEditor
         {
             if(index > paths.Count - 1)
                 return;
+            Brush brush;
             graph.PaintAllEdges(Brushes.Black);
             graph.PaintAllNodes(Brushes.Black);
+            
+            if(PathFinder.AssessThePath(paths[index]) == theShortestCost)
+                brush = Brushes.Red;
+            else
+                brush = Brushes.Green;
+            
             foreach (KeyValuePair<Node, Edge> nodeToPaint in paths[index])
             {
-                graph.Nodes[graph.Nodes.IndexOf(nodeToPaint.Key)].PaintTheNode(Brushes.Red);
+                graph.Nodes[graph.Nodes.IndexOf(nodeToPaint.Key)].PaintTheNode(brush);
                 if (nodeToPaint.Value != null)
-                    graph.Edges[graph.Edges.IndexOf(nodeToPaint.Value)].PaintTheEdge(Brushes.Red);
+                    graph.Edges[graph.Edges.IndexOf(nodeToPaint.Value)].PaintTheEdge(brush);
             }
+            UpdatePathCost(PathFinder.AssessThePath(paths[index]), true);
         }
         private void ShowTheShortestWay(Dictionary<Node, Edge> path)
         {
@@ -218,6 +233,7 @@ namespace GraphEditor
                 if (nodeToPaint.Value != null)
                     graph.Edges[graph.Edges.IndexOf(nodeToPaint.Value)].PaintTheEdge(Brushes.Red);
             }
+            UpdatePathCost(PathFinder.AssessThePath(path), true);
         }
         private void Edge_MouseDown(object sender, MouseButtonEventArgs e)
         {
@@ -399,20 +415,27 @@ namespace GraphEditor
             else if (e.Key == Key.R)
             {
                 isSelectingEdges = !isSelectingEdges;
+                UpdateModesStatus();
                 selectedNode1 = null;
                 selectedNode2 = null;
             }
             else if (e.Key == Key.K)
             {
                 isSelectingNodesForTheShortestPathFinding = !isSelectingNodesForTheShortestPathFinding;
+                UpdateModesStatus();
                 selectedNode1 = null;
                 selectedNode2 = null;
+                if(!isSelectingNodesForTheShortestPathFinding)
+                    UpdatePathCost(0, false);
             }
             else if (e.Key == Key.Q)
             {
                 isSelectingNodesFortPathFinding = !isSelectingNodesFortPathFinding;
+                UpdateModesStatus();
                 selectedNode1 = null;
                 selectedNode2 = null;
+                if(!isSelectingNodesFortPathFinding)
+                    UpdatePathCost(0, false);
             }
             else if (e.Key == Key.N)
             {
@@ -514,7 +537,7 @@ namespace GraphEditor
 
         private void Ellipse_PressedKey(object sender, KeyEventArgs e)
         {
-            if (e.Key == Key.D) // Если нажата клавиша D — удаляем эллипс
+            if (e.Key == Key.Delete) // Если нажата клавиша D — удаляем эллипс
             {
                 if (sender is Node node)
                 {
@@ -550,6 +573,25 @@ namespace GraphEditor
                 NodeMultiplicityCountText.Text = "Степень данной вершины: " + node.edges.Count;
             else
                 NodeMultiplicityCountText.Text = String.Empty;
+        }
+
+        private void UpdateModesStatus()
+        {
+            string edgeCreatingStatus = isSelectingEdges ? "On" : "Off";
+            string waysFindingStatus = isSelectingNodesFortPathFinding ? "On" : "Off";
+            string shortestWayFindingStatus = isSelectingNodesForTheShortestPathFinding ? "On" : "Off";
+            IsEdgeCreatingMode.Text = "Режим создания рёбер: " + edgeCreatingStatus;
+            IsFindingWaysMode.Text = "Режим поиска путей: " + waysFindingStatus;
+            IsFindingTheShortestWayMode.Text = "Режим поиска кратчайшего пути: " + shortestWayFindingStatus;
+        }
+
+        private void UpdatePathCost(int cost, bool isItVisible)
+        {
+            if(isItVisible)
+                PathCostWindow.Visibility = Visibility.Visible;
+            else
+                PathCostWindow.Visibility = Visibility.Collapsed;
+            PathCostTextBlock.Text = "Стоимость пути: " + cost.ToString();
         }
 
         private void MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
@@ -608,7 +650,19 @@ namespace GraphEditor
                 CreateEdge(edge).UpdateNodePositions();
             }
 
+            TabItem tabItem = GetTab();
+            
+            tabItem.Header = System.IO.Path.GetFileNameWithoutExtension(filePath);
             UpdateGraphStats();
+        }
+        private TabItem GetTab()
+        {
+            DependencyObject  obj = this;
+            while (obj != null && !(obj is TabItem))
+            {
+                obj = LogicalTreeHelper.GetParent(obj);
+            }
+            return obj as TabItem;
         }
     }
 }

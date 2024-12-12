@@ -114,5 +114,19 @@ namespace GraphEditor
             }
             return paths;
         }
+
+        public static int AssessThePath(Dictionary<Node, Edge> path)
+        {
+            int psthCost = 0;
+            
+            if (path == null)
+                return -1;
+            foreach (var Node in path)
+            {
+                if(Node.Value != null)
+                    psthCost += Node.Value.Weight;
+            }
+            return psthCost;
+        }
     }
 }

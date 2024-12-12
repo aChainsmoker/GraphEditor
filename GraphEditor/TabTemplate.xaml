@@ -18,10 +18,17 @@
             </Canvas>
         </Border>
         <Border BorderBrush="Black" BorderThickness="2" HorizontalAlignment="Right" VerticalAlignment="Bottom">
-            <Canvas x:Name="GraphEditingMode" MinWidth="150" MinHeight="75" Margin="10">
+            <Canvas x:Name="GraphEditingMode" MinWidth="200" MinHeight="75" Margin="10">
                 <!-- Добавим элементы, например, текстовые блоки для отображения информации -->
                 <TextBlock x:Name="IsEdgeCreatingMode" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5" />
-                <TextBlock x:Name="IsFindingTheShortestWayMode" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5, 20, 0, 0"/>
+                <TextBlock x:Name="IsFindingWaysMode" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5, 20, 0, 0"/>
+                <TextBlock x:Name="IsFindingTheShortestWayMode" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5, 40, 0, 0" MaxWidth="190" LineHeight="14" LineStackingStrategy="BlockLineHeight" TextWrapping="Wrap" TextAlignment="Left"/>
+            </Canvas>
+        </Border>
+        <Border x:Name="PathCostWindow" BorderBrush="Black" BorderThickness="2" HorizontalAlignment="Left" VerticalAlignment="Top">
+            <Canvas x:Name="PathCostCanvas" MinWidth="150" MinHeight="25" Margin="10">
+                <!-- Добавим элементы, например, текстовые блоки для отображения информации -->
+                <TextBlock x:Name="PathCostTextBlock" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="3" />
             </Canvas>
         </Border>
     </Grid>

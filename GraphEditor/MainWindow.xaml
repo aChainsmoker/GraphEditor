@@ -7,12 +7,6 @@
         mc:Ignorable="d"
         Title="GraphEditor" Height="450" Width="800"
         >
-    <TabControl>
-        <TabItem Header="Tab1" x:Name="Tab">
-            <local:TabTemplate Loaded="Tab_Loaded"></local:TabTemplate>
-        </TabItem>
-        <TabItem Header="Tab2" x:Name="Tab_">
-            <local:TabTemplate></local:TabTemplate>
-        </TabItem>
+    <TabControl x:Name="TabControl" FocusVisualStyle="{x:Null}" KeyDown="Tab_PressedKey">
     </TabControl>
 </Window>

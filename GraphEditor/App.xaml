@@ -6,6 +6,7 @@
     <Application.Resources>
         <!-- Глобальный ресурс для контекстного меню -->
         <ContextMenu x:Key="ColorContextMenu">
+            <MenuItem Header="Black" Click="ChangeColor_Click" Tag="Black"/>
             <MenuItem Header="Red" Click="ChangeColor_Click" Tag="Red"/>
             <MenuItem Header="Green" Click="ChangeColor_Click" Tag="Green"/>
             <MenuItem Header="Blue" Click="ChangeColor_Click" Tag="Blue"/>
