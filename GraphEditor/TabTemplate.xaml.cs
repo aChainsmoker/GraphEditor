@@ -130,6 +130,7 @@ namespace GraphEditor
                     edge.EndNode.edges.Remove(edge);
                     graph.RemoveEdge(edge);
                     MainCanvas.Children.Remove(edge);
+                    MainCanvas.Focus();
                 }
             }
             else if (e.Key == Key.I)

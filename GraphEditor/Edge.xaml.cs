@@ -17,7 +17,7 @@ namespace GraphEditor
         public Node EndNode { get; set; }
 
         public bool isOriented = false;
-        public int Weight {get => weight; set {weight = value; weightTextBlock.Text = value.ToString();} }
+        public int Weight {get => weight; set {weight = value; weightTextBlock.Text = value.ToString(); weightTextBlock.Visibility = weight == 0? Visibility.Collapsed : Visibility.Visible;} }
         public Brush edgeStroke = Brushes.Black;
         public Polyline polyline;
         public List<InflectionNode> inflectionEllipses = new List<InflectionNode>();
