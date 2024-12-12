@@ -2,6 +2,47 @@ namespace GraphEditor
 {
     internal class PathFinder
     {
+        public static List<List<Node>> FindAllPaths(Graph graph, Node startNode, Node endNode)
+        {
+            var allPaths = new List<List<Node>>();
+            var currentPath = new List<Node>();
+            var visited = new HashSet<Node>();
+
+            // Рекурсивный поиск путей
+            FindPathsRecursive(startNode, endNode, visited, currentPath, allPaths);
+
+            return allPaths;
+        }
+        
+        private static void FindPathsRecursive(Node currentNode, Node endNode, HashSet<Node> visited, List<Node> currentPath, List<List<Node>> allPaths)
+        {
+            // Добавляем текущую вершину в путь и отмечаем как посещённую
+            currentPath.Add(currentNode);
+            visited.Add(currentNode);
+
+            // Если достигли конечной вершины, сохраняем текущий путь
+            if (currentNode == endNode)
+            {
+                allPaths.Add(new List<Node>(currentPath));
+            }
+            else
+            {
+                // Обходим все соседние вершины
+                foreach (var edge in currentNode.GetListOfAvailableEdges())
+                {
+                    Node nextNode = edge.GetSecondNode(currentNode);
+                    if (!visited.Contains(nextNode))
+                    {
+                        FindPathsRecursive(nextNode, endNode, visited, currentPath, allPaths);
+                    }
+                }
+            }
+
+            // Возвращаемся назад: удаляем текущую вершину из пути и снимаем отметку о посещении
+            currentPath.RemoveAt(currentPath.Count - 1);
+            visited.Remove(currentNode);
+        }
+        
         public static List<Node> FindShortestWay(Graph graph, Node startNode, Node endNode)
         {
             PriorityQueue<Node, int> priorityQueue = new PriorityQueue<Node, int>();

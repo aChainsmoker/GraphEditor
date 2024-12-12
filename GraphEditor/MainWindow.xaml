@@ -9,7 +9,7 @@
         >
     <TabControl>
         <TabItem Header="Tab1" x:Name="Tab">
-            <local:TabTemplate></local:TabTemplate>
+            <local:TabTemplate Loaded="Tab_Loaded"></local:TabTemplate>
         </TabItem>
         <TabItem Header="Tab2" x:Name="Tab_">
             <local:TabTemplate></local:TabTemplate>

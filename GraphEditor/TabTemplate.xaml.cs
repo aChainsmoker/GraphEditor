@@ -172,7 +172,7 @@ namespace GraphEditor
             {
                 selectedNode2 = node;
                 
-                PathFinder.FindShortestWay(graph, selectedNode1, selectedNode2);
+                PathFinder.FindAllPaths(graph, selectedNode1, selectedNode2);
                 selectedNode1 = null;
                 selectedNode2 = null;
             }

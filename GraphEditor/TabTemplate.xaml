@@ -8,8 +8,6 @@
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
         <Canvas x:Name="MainCanvas" Cursor="Arrow" KeyDown="Canvas_PressedKey" Background="White" Focusable="True" FocusVisualStyle="{x:Null}" MouseDown="MainCanvas_MouseDown">
-            <local:Node EllipseName="Haron" EllipseFill="Transparent" HorizontalAlignment="Left" Canvas.Left="220" Canvas.Top="198" VerticalAlignment="Center" MouseDown="Ellipse_MouseDown" MouseMove="Ellipse_MouseMove" MouseUp="Ellipse_MouseUp" KeyDown="Ellipse_PressedKey" Focusable="True"/>
-            <local:Node EllipseName="Lelush" EllipseFill="Transparent" HorizontalAlignment="Left" Canvas.Left="250" Canvas.Top="298" VerticalAlignment="Center" MouseDown="Ellipse_MouseDown" MouseMove="Ellipse_MouseMove" MouseUp="Ellipse_MouseUp" KeyDown="Ellipse_PressedKey" Focusable="True"/>
         </Canvas>
         <Border BorderBrush="Black" BorderThickness="2" HorizontalAlignment="Right" VerticalAlignment="Top">
             <Canvas x:Name="GraphStatsCanvas" MinWidth="150" MinHeight="75" Margin="10">

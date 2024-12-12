@@ -16,8 +16,14 @@ namespace GraphEditor
     {
         public MainWindow()
         {
+            
             InitializeComponent();
-            Tab.Focus();
+        }
+
+        private void Tab_Loaded(object sender, RoutedEventArgs e)
+        {
+            TabTemplate tabTemplate = sender as TabTemplate;
+            tabTemplate.MainCanvas.Focus();
         }
     }
 }
