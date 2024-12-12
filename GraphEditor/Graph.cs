@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using System.Windows.Media;
 
 namespace GraphEditor
 {
@@ -40,7 +41,23 @@ namespace GraphEditor
             for(int i =0; i < nodes.Count; i++)
                 nodes[i].isChecked = false;
         }
+        
+        
+        public void PaintAllNodes(Brush brush)
+        {
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                nodes[i].PaintTheNode(brush);
+            }
+        }
 
+        public void PaintAllEdges(Brush brush)
+        {
+            for (int i = 0; i < edges.Count; i++)
+            {
+                edges[i].PaintTheEdge(brush);
+            }
+        }
         public Edge FindEdgeBetweenNodes(Node node1, Node node2)
         {
             for (int i = 0; i < edges.Count; i++)
