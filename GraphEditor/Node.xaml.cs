@@ -29,6 +29,21 @@ namespace GraphEditor
             Panel.SetZIndex(this, 3);
         }
 
+        public void PaintTheNode()
+        {
+            this.ellipse.Stroke = nodeStroke;
+        }
+
+        public void PaintTheNode(Brush brush)
+        {
+            this.nodeStroke = brush;
+            this.ellipse.Stroke = brush;
+        }
+
+        public void RepresentFocus()
+        {
+            this.ellipse.Stroke = Brushes.GreenYellow;
+        }
         // Свойство для доступа к имени (тексту)
         public string EllipseName
         {

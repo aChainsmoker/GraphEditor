@@ -16,6 +16,7 @@ using System.Windows.Navigation;
 using System.Windows.Shapes;
 using System.Xml.Linq;
 using System.Xml.Serialization;
+using Microsoft.Win32;
 
 
 namespace GraphEditor
@@ -32,7 +33,11 @@ namespace GraphEditor
         private Node selectedNode1;
         private Node selectedNode2;
         private bool isSelectingEdges = false; // Флаг для режима выбора рёбер
-        private bool isSelectingNodesForPathFinding = false;
+        private bool isSelectingNodesForTheShortestPathFinding = false;
+        private bool isSelectingNodesFortPathFinding = false;
+        private int foundPathIndex;
+
+        private List<Dictionary<Node, Edge>> paths; //Временное решение
         public TabTemplate()
         {
             InitializeComponent();
@@ -46,7 +51,7 @@ namespace GraphEditor
             {
                 if (lastFocusedObject is Node node)
                 {
-                    node.ellipse.Stroke = node.nodeStroke;
+                    node.PaintTheNode();
                     return true;
                 }
                 else if (lastFocusedObject is Edge edge)
@@ -63,7 +68,8 @@ namespace GraphEditor
         {
             SerializableGraph serializableGraph = new SerializableGraph();
             Dictionary<Node,int> nodeIdMap = new Dictionary<Node, int>();
-
+            
+            
             // Конвертируем узлы
             for (int i = 0; i < nodes.Count; i++)
             {
@@ -151,12 +157,12 @@ namespace GraphEditor
             {
                 Keyboard.ClearFocus();
 
-                node.ellipse.Stroke = Brushes.GreenYellow;
+                node.RepresentFocus();
                 UpdateGraphStats();
 
                 if (isSelectingEdges)
                     SelectNodeForEdgeCreating(node);
-                if (isSelectingNodesForPathFinding)
+                if (isSelectingNodesForTheShortestPathFinding || isSelectingNodesFortPathFinding)
                     SelectNodeForPathFinding(node);
             }
             movingObject.Focus();
@@ -171,13 +177,48 @@ namespace GraphEditor
             else
             {
                 selectedNode2 = node;
-                
-                PathFinder.FindAllPaths(graph, selectedNode1, selectedNode2);
+                if(isSelectingNodesForTheShortestPathFinding)
+                {
+                    Dictionary<Node, Edge> path = PathFinder.FindShortestWay(graph, selectedNode1, selectedNode2);
+                    ShowTheShortestWay(path);
+                }
+
+                if (isSelectingNodesFortPathFinding)
+                {
+                    foundPathIndex = 0;
+                    paths = PathFinder.FindAllPaths(graph, selectedNode1, selectedNode2);
+                    ShowTheWay(paths, foundPathIndex);
+                }
                 selectedNode1 = null;
                 selectedNode2 = null;
             }
         }
-        
+
+        private void ShowTheWay(List<Dictionary<Node,Edge>> paths, int index)
+        {
+            if(index > paths.Count - 1)
+                return;
+            graph.PaintAllEdges(Brushes.Black);
+            graph.PaintAllNodes(Brushes.Black);
+            foreach (KeyValuePair<Node, Edge> nodeToPaint in paths[index])
+            {
+                graph.Nodes[graph.Nodes.IndexOf(nodeToPaint.Key)].PaintTheNode(Brushes.Red);
+                if (nodeToPaint.Value != null)
+                    graph.Edges[graph.Edges.IndexOf(nodeToPaint.Value)].PaintTheEdge(Brushes.Red);
+            }
+        }
+        private void ShowTheShortestWay(Dictionary<Node, Edge> path)
+        {
+            
+            graph.PaintAllEdges(Brushes.Black);
+            graph.PaintAllNodes(Brushes.Black);
+            foreach (KeyValuePair<Node, Edge> nodeToPaint in path)
+            {
+                graph.Nodes[graph.Nodes.IndexOf(nodeToPaint.Key)].PaintTheNode(Brushes.Red);
+                if (nodeToPaint.Value != null)
+                    graph.Edges[graph.Edges.IndexOf(nodeToPaint.Value)].PaintTheEdge(Brushes.Red);
+            }
+        }
         private void Edge_MouseDown(object sender, MouseButtonEventArgs e)
         {
 
@@ -188,7 +229,7 @@ namespace GraphEditor
             {
                 Keyboard.ClearFocus();
 
-                edge.PaintTheEdge(Brushes.GreenYellow);
+                edge.RepresentFocus();
                 UpdateGraphStats();
             }
             lastFocusedObject.Focus();
@@ -361,19 +402,71 @@ namespace GraphEditor
                 selectedNode1 = null;
                 selectedNode2 = null;
             }
-            else if (e.Key == Key.Q)
+            else if (e.Key == Key.K)
             {
-                isSelectingNodesForPathFinding = !isSelectingNodesForPathFinding;
+                isSelectingNodesForTheShortestPathFinding = !isSelectingNodesForTheShortestPathFinding;
                 selectedNode1 = null;
                 selectedNode2 = null;
             }
+            else if (e.Key == Key.Q)
+            {
+                isSelectingNodesFortPathFinding = !isSelectingNodesFortPathFinding;
+                selectedNode1 = null;
+                selectedNode2 = null;
+            }
+            else if (e.Key == Key.N)
+            {
+                if(isSelectingNodesFortPathFinding == false)
+                    return;
+                ShowTheWay(paths, ++foundPathIndex);
+            }
             else if(e.Key == Key.L)
             {
-                SaveGraphToXml("graph.xml", graph.Nodes, graph.Edges);
+                SaveFileDialog saveFileDialog = new SaveFileDialog
+                {
+                    Filter = "XML Files (*.xml)|*.xml", // Фильтр для выбора XML
+                    Title = "Сохранить граф",
+                    DefaultExt = "xml" // Расширение файла по умолчанию
+                };
+
+                // Показываем диалог и проверяем, выбрал ли пользователь файл
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    string filePath = saveFileDialog.FileName; // Путь для сохранения
+
+                    try
+                    {
+                        // Сохраняем граф в файл
+                        SaveGraphToXml(filePath, graph.Nodes, graph.Edges);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Ошибка при сохранении графа: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                
+                
             }
             else if(e.Key == Key.M)
             {
-                LoadGraphFromXml("graph.xml", MainCanvas, graph.Nodes, graph.Edges);
+                OpenFileDialog openFileDialog = new OpenFileDialog
+                {
+                    Filter = "XML Files (*.xml)|*.xml", // Фильтр для выбора только XML файлов
+                    Title = "Выберите файл с графом"
+                };
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    string filePath = openFileDialog.FileName; // Путь к выбранному файлу
+                    try
+                    {
+                        LoadGraphFromXml(filePath, MainCanvas, graph.Nodes, graph.Edges);
+                    }
+                    catch (Exception ex)
+                    {
+                        MessageBox.Show($"Ошибка при загрузке графа: {ex.Message}", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Error);
+                    }
+                }
+                
             }
             else if(e.Key == Key.C)
             {

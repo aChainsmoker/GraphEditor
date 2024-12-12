@@ -195,10 +195,16 @@ namespace GraphEditor
         }
         public void PaintTheEdge(Brush brush)
         {
+            edgeStroke = brush;
             polyline.Stroke = brush;
             arrowHead.Stroke = brush;
         }
 
+        public void RepresentFocus()
+        {
+            polyline.Stroke = Brushes.GreenYellow;
+            arrowHead.Stroke = Brushes.GreenYellow;
+        }
         public Node GetSecondNode(Node node)
         {
             if (StartNode == node)
