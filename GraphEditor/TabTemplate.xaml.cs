@@ -46,12 +46,18 @@ namespace GraphEditor
 
         private List<Dictionary<Node, Edge>> paths; //Временное решение
         private int theShortestCost;
+        
+        private ScaleTransform scaleTransform;
+        private double scale = 1.0; // Текущий масштаб
         public TabTemplate()
         {
             InitializeComponent();
             graph.AddingEdge += CreateEdge;
             UpdateModesStatus();
             UpdatePathCost(0, false);
+            
+            scaleTransform = new ScaleTransform(scale, scale);
+            MainCanvas.RenderTransform = scaleTransform;
         }
 
         
@@ -61,7 +67,7 @@ namespace GraphEditor
             {
                 if (lastFocusedObject is Node node)
                 {
-                    if(selectedNodes!= null && !selectedNodes.Contains(node))
+                    if((selectedNodes != null && !selectedNodes.Contains(node)) || selectedNodes == null)
                     {
                         node.PaintTheNode();
                         return true;
@@ -342,7 +348,7 @@ namespace GraphEditor
         // Обработка перемещения мыши
         private void Ellipse_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isDragging == true && (selectedNodes != null && selectedNodes.Count != 0 && selectedNodes.Count != 1) &&
+            if (isDragging == true && (selectedNodes != null &&  selectedNodes != null && (selectedNodes.Count + selectedInflectionNodes.Count) > 1 ) &&
                 (selectedNodes.Contains(sender) || selectedInflectionNodes.Contains(sender)))
             {
                 Point mouseCurrentPosition = e.GetPosition(MainCanvas);
@@ -426,10 +432,24 @@ namespace GraphEditor
         // Обработка отпускания кнопки мыши
         private void Ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            if (selectedNodes != null)
+            {
+                foreach (Node selectedNode in selectedNodes)
+                    UpdateEdgesPosition(selectedNode);
+            }
+
+            if (selectedInflectionNodes != null)
+            {
+                foreach (InflectionNode inflectionNode in selectedInflectionNodes)
+                    UpdateEdgesPosition(inflectionNode);
+            }
+
+            
             if (sender is Node node)
                 UpdateEdgesPosition(node);
             else if (sender is InflectionNode inflectionNode)
                 UpdateEdgesPosition(inflectionNode);
+            
 
 
             isDragging = false;   // Прекращаем перемещение
@@ -654,7 +674,7 @@ namespace GraphEditor
 
         private void MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
-            if (isDragging == false)
+            if (isDragging == false && e.LeftButton == MouseButtonState.Pressed)
             {
                 selectedNodes = null;
                 graph.PaintAllNodes();
@@ -840,6 +860,34 @@ namespace GraphEditor
 
         }
 
+        private void MainCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            // Проверяем, зажата ли клавиша Ctrl
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                // Коэффициент изменения масштаба
+                double scaleFactor = e.Delta > 0 ? 1.1 : 0.9;
+        
+                // Новое значение масштаба
+                scale *= scaleFactor;
+                scaleTransform.ScaleX = scale;
+                scaleTransform.ScaleY = scale;
+        
+                // Позиция курсора относительно Canvas
+                Point cursorPosition = e.GetPosition(MainCanvas);
+        
+                // Устанавливаем центр масштабирования
+                scaleTransform.CenterX = cursorPosition.X;
+                scaleTransform.CenterY = cursorPosition.Y;
+        
+                e.Handled = true; // Указываем, что событие обработано
+            }
+        }
+        
+        private void ScrollViewer_GotFocus(object sender, RoutedEventArgs e)
+        {
+            MainCanvas.Focus();
+        }
     }
 }
 

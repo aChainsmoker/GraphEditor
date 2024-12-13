@@ -7,8 +7,11 @@
              mc:Ignorable="d" 
              d:DesignHeight="450" d:DesignWidth="800">
     <Grid>
-        <Canvas x:Name="MainCanvas" Cursor="Arrow" KeyDown="Canvas_PressedKey" Background="White" Focusable="True" FocusVisualStyle="{x:Null}" MouseDown="MainCanvas_MouseDown" MouseUp="MainCanvas_MouseUp" MouseMove="MainCanvas_MouseMove">
-        </Canvas>
+        <!-- <ScrollViewer x:Name="MainScrollViewer" HorizontalScrollBarVisibility="Auto" VerticalScrollBarVisibility="Auto" GotFocus="ScrollViewer_GotFocus"> -->
+            <Canvas x:Name="MainCanvas"  Cursor="Arrow" KeyDown="Canvas_PressedKey" Background="White" Focusable="True" 
+                    FocusVisualStyle="{x:Null}" MouseDown="MainCanvas_MouseDown" MouseUp="MainCanvas_MouseUp" MouseMove="MainCanvas_MouseMove" MouseWheel="MainCanvas_MouseWheel" RenderTransformOrigin="0, 0">
+            </Canvas>
+        <!-- </ScrollViewer> -->
         <Border BorderBrush="Black" BorderThickness="2" HorizontalAlignment="Right" VerticalAlignment="Top">
             <Canvas x:Name="GraphStatsCanvas" MinWidth="150" MinHeight="75" Margin="10">
                 <!-- Добавим элементы, например, текстовые блоки для отображения информации -->
