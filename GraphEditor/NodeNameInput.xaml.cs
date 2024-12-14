@@ -15,7 +15,6 @@ namespace GraphEditor
 
         private void OnOkButtonClick(object sender, RoutedEventArgs e)
         {
-            // Забираем введенное имя и закрываем окно
             NodeName = nameInputTextBox.Text;
             this.DialogResult = true;
         }

@@ -44,14 +44,13 @@ namespace GraphEditor
         {
             this.ellipse.Stroke = Brushes.GreenYellow;
         }
-        // Свойство для доступа к имени (тексту)
+
         public string EllipseName
         {
             get { return nameTextBox.Text; }
             set { nameTextBox.Text = value; }
         }
 
-        // Свойство для изменения цвета эллипса
         public Brush EllipseFill
         {
             get { return ellipse.Fill; }

@@ -63,7 +63,6 @@ namespace GraphEditor
             }
         }
 
-        // Метод для обновления положения линии между узлами
 
         public void UpdateAllPositions()
         {

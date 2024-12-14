@@ -1,0 +1,8 @@
+<Window x:Class="GraphEditor.VertexesDegreeWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        Title="Информация о вершинах" Height="300" Width="400">
+    <ScrollViewer VerticalScrollBarVisibility="Auto">
+        <StackPanel x:Name="InfoPanel" Margin="10" />
+    </ScrollViewer>
+</Window>
