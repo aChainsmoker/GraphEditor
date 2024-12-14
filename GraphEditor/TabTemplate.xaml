@@ -17,7 +17,7 @@
                 <!-- Добавим элементы, например, текстовые блоки для отображения информации -->
                 <TextBlock x:Name="NodeCountText" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5" />
                 <TextBlock x:Name="EdgeCountText" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5, 20, 0, 0"/>
-                <TextBlock x:Name="NodeMultiplicityCountText" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5, 40, 0, 0" MaxWidth="140" TextWrapping="Wrap" TextAlignment="Left"/>
+                <TextBlock x:Name="NodeMultiplicityCountText" FontSize="14" Foreground="Black" HorizontalAlignment="Left" VerticalAlignment="Top" Margin="5, 40, 0, 0" MaxWidth="140" LineHeight="14" LineStackingStrategy="BlockLineHeight" TextWrapping="Wrap" TextAlignment="Left"/>
             </Canvas>
         </Border>
         <Border BorderBrush="Black" BorderThickness="2" HorizontalAlignment="Right" VerticalAlignment="Bottom">
