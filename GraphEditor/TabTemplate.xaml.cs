@@ -587,6 +587,10 @@ namespace GraphEditor
             {
                 ShowEulerianCycles(graph);
             }
+            else if (e.Key == Key.J)
+            {
+                ShowVertexInfo();
+            }
         }
         
         private void ShowEulerianCycles(Graph graph)
@@ -882,6 +886,18 @@ namespace GraphEditor
         
                 e.Handled = true; // Указываем, что событие обработано
             }
+        }
+        private void ShowVertexInfo()
+        {
+            if (graph.Nodes.Count == 0)
+            {
+                MessageBox.Show("Граф не содержит вершин.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // Создаём и отображаем окно с информацией о вершинах
+            VertexesDegreeWindow vertexInfoWindow = new VertexesDegreeWindow(graph.Nodes);
+            vertexInfoWindow.ShowDialog();
         }
         
         private void ScrollViewer_GotFocus(object sender, RoutedEventArgs e)
