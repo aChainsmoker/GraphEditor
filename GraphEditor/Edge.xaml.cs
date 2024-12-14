@@ -179,7 +179,7 @@ namespace GraphEditor
 
 
             // Позиционируем стрелку на конце линии
-            Canvas.SetLeft(arrowHead, endPoint.X - direction.X * EndNode.ellipse.Width - arrowHead.Width / 5);
+            Canvas.SetLeft(arrowHead, endPoint.X - direction.X * EndNode.ellipse.Width - arrowHead.Width / 8);
             Canvas.SetTop(arrowHead, endPoint.Y - direction.Y * EndNode.ellipse.Height - arrowHead.Height / 2);
 
             RotateTransform rotateTransform = new RotateTransform(angle);

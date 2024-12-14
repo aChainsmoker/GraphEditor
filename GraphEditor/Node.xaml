@@ -16,6 +16,6 @@
         <!-- Текстовое поле для названия -->
         <TextBlock x:Name="nameTextBox" HorizontalAlignment="Center" VerticalAlignment="Top" 
         MinWidth="10" Height="20" TextAlignment="Center" Margin="0,30,0,0 " 
-        Background="Transparent" Foreground="Black" FontFamily="Times New Roman" />
+        Background="Transparent" Foreground="Black" FontFamily="Cascadia Mono"/>
     </Grid>
 </UserControl>
