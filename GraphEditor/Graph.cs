@@ -50,6 +50,13 @@ namespace GraphEditor
                 nodes[i].PaintTheNode(brush);
             }
         }
+        public void PaintAllNodes()
+        {
+            for (int i = 0; i < nodes.Count; i++)
+            {
+                nodes[i].PaintTheNode();
+            }
+        }
 
         public void PaintAllEdges(Brush brush)
         {

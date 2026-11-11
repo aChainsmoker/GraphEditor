@@ -9,11 +9,11 @@
               Fill="Green" 
               StrokeThickness="2"
               Width="20" 
-              Height="20" RenderTransformOrigin="0.2, 0.46">
+              Height="20" RenderTransformOrigin="0.13, 0.46">
         </Polygon>
         <TextBlock x:Name="weightTextBlock" HorizontalAlignment="Center" VerticalAlignment="Top" 
-MinWidth="10" Height="12" TextAlignment="Center" Margin="0,30,0,0 " 
-Background="Transparent" Foreground="Black" FontFamily="Times New Roman"/>
+MinWidth="10" Height="12" TextAlignment="Center" Margin="0, 15,0,0 " 
+Background="Transparent" Foreground="Black" FontFamily="Cascadia Mono"/>
     </Canvas>
 
 </UserControl>

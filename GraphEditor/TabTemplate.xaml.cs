@@ -25,11 +25,13 @@ namespace GraphEditor
     public partial class TabTemplate : UserControl
     {
         private bool isDragging = false;      // Флаг, указывающий, происходит ли перемещение
-        private Point mouseStartPosition;     // Начальная позиция мыши
         private UIElement movingObject;       // Объект, который мы перемещаем
+        private Point mouseStartPosition;     // Начальная позиция мыши
         private UIElement lastFocusedObject;
         private Graph graph = new Graph();
         private List<Point> edgePoints = new List<Point>();
+        private List<Node> selectedNodes;
+        private List<InflectionNode> selectedInflectionNodes;
 
         private Node selectedNode1;
         private Node selectedNode2;
@@ -37,15 +39,25 @@ namespace GraphEditor
         private bool isSelectingNodesForTheShortestPathFinding = false;
         private bool isSelectingNodesFortPathFinding = false;
         private int foundPathIndex;
+        
+        private Point startRectanglePoint; // Начальная точка выделения
+        private Rectangle selectionRectangle; // Прямоугольник выделения
+        private bool isRectangleSelectingMode = false; // Флаг выделения
 
         private List<Dictionary<Node, Edge>> paths; //Временное решение
         private int theShortestCost;
+        
+        private ScaleTransform scaleTransform;
+        private double scale = 1.0; // Текущий масштаб
         public TabTemplate()
         {
             InitializeComponent();
             graph.AddingEdge += CreateEdge;
             UpdateModesStatus();
             UpdatePathCost(0, false);
+            
+            scaleTransform = new ScaleTransform(scale, scale);
+            MainCanvas.RenderTransform = scaleTransform;
         }
 
         
@@ -55,8 +67,11 @@ namespace GraphEditor
             {
                 if (lastFocusedObject is Node node)
                 {
-                    node.PaintTheNode();
-                    return true;
+                    if((selectedNodes != null && !selectedNodes.Contains(node)) || selectedNodes == null)
+                    {
+                        node.PaintTheNode();
+                        return true;
+                    }
                 }
                 else if (lastFocusedObject is Edge edge)
                 {
@@ -158,7 +173,16 @@ namespace GraphEditor
             mouseStartPosition = e.GetPosition(MainCanvas);   // Запоминаем начальную позицию мыши
             movingObject.CaptureMouse();   // Захватываем мышь для объекта
 
+            
             ClearFocusLighting();
+
+            if (selectedNodes != null && !(selectedNodes.Contains(movingObject) ||
+                                           selectedInflectionNodes.Contains(movingObject)))
+            {
+                graph.PaintAllNodes();
+                selectedNodes = null;
+            }
+
             lastFocusedObject = movingObject;
 
             if (movingObject is Node node)
@@ -324,10 +348,48 @@ namespace GraphEditor
         // Обработка перемещения мыши
         private void Ellipse_MouseMove(object sender, MouseEventArgs e)
         {
-            if (isDragging && movingObject != null)
+            if (isDragging == true && (selectedNodes != null &&  selectedNodes != null && (selectedNodes.Count + selectedInflectionNodes.Count) > 1 ) &&
+                (selectedNodes.Contains(sender) || selectedInflectionNodes.Contains(sender)))
+            {
+                Point mouseCurrentPosition = e.GetPosition(MainCanvas);
+                // Вычисляем, на сколько сдвинулась мышь
+                double offsetX = mouseCurrentPosition.X - mouseStartPosition.X;
+                double offsetY = mouseCurrentPosition.Y - mouseStartPosition.Y;
+                foreach (Node selectedNode in selectedNodes)
+                {
+                    
+                    // Получаем текущие координаты объекта
+                    double currentLeft = Canvas.GetLeft(selectedNode);
+                    double currentTop = Canvas.GetTop(selectedNode);
+
+                    // Задаем новые координаты объекта, с учетом сдвига
+                    Canvas.SetLeft(selectedNode, currentLeft + offsetX);
+                    Debug.WriteLine(offsetX);
+                    Canvas.SetTop(selectedNode, currentTop + offsetY);
+
+                    UpdateEdgesPosition(selectedNode);
+                }
+                foreach (InflectionNode ellipse in selectedInflectionNodes)
+                {
+                    
+                    // Получаем текущие координаты объекта
+                    double currentLeft = Canvas.GetLeft(ellipse);
+                    double currentTop = Canvas.GetTop(ellipse);
+
+                    // Задаем новые координаты объекта, с учетом сдвига
+                    Canvas.SetLeft(ellipse, currentLeft + offsetX);
+                    Debug.WriteLine(offsetX + "asdasdas");
+                    Canvas.SetTop(ellipse, currentTop + offsetY);
+
+                    UpdateEdgesPosition(ellipse);
+                }
+                mouseStartPosition = mouseCurrentPosition;
+            }
+            else if (isDragging && movingObject != null)
             {
                 // Получаем текущее положение мыши относительно канваса
                 Point mouseCurrentPosition = e.GetPosition(MainCanvas);
+
 
                 // Вычисляем, на сколько сдвинулась мышь
                 double offsetX = mouseCurrentPosition.X - mouseStartPosition.X;
@@ -370,13 +432,28 @@ namespace GraphEditor
         // Обработка отпускания кнопки мыши
         private void Ellipse_MouseUp(object sender, MouseButtonEventArgs e)
         {
+            if (selectedNodes != null)
+            {
+                foreach (Node selectedNode in selectedNodes)
+                    UpdateEdgesPosition(selectedNode);
+            }
+
+            if (selectedInflectionNodes != null)
+            {
+                foreach (InflectionNode inflectionNode in selectedInflectionNodes)
+                    UpdateEdgesPosition(inflectionNode);
+            }
+
+            
             if (sender is Node node)
                 UpdateEdgesPosition(node);
             else if (sender is InflectionNode inflectionNode)
                 UpdateEdgesPosition(inflectionNode);
+            
 
 
             isDragging = false;   // Прекращаем перемещение
+            
             if (movingObject != null)
             {
                 movingObject.ReleaseMouseCapture();   // Освобождаем захват мыши
@@ -510,6 +587,10 @@ namespace GraphEditor
             {
                 ShowEulerianCycles(graph);
             }
+            else if (e.Key == Key.J)
+            {
+                ShowVertexInfo();
+            }
         }
         
         private void ShowEulerianCycles(Graph graph)
@@ -597,9 +678,36 @@ namespace GraphEditor
 
         private void MainCanvas_MouseDown(object sender, MouseButtonEventArgs e)
         {
+            if (isDragging == false && e.LeftButton == MouseButtonState.Pressed)
+            {
+                selectedNodes = null;
+                graph.PaintAllNodes();
+                if(lastFocusedObject is Node node)
+                    node.RepresentFocus();
+                // Указываем, что начинается выделение\
+                isRectangleSelectingMode = true;
+
+                // Сохраняем начальную точку
+                startRectanglePoint = e.GetPosition(MainCanvas);
+
+                // Создаём прямоугольник выделения
+                selectionRectangle = new Rectangle
+                {
+                    Stroke = Brushes.Blue,
+                    StrokeThickness = 1,
+                    Fill = new SolidColorBrush(Color.FromArgb(50, 0, 0, 255)) // Полупрозрачный синий цвет
+                };
+
+                // Устанавливаем начальное положение прямоугольника
+                Canvas.SetLeft(selectionRectangle, startRectanglePoint.X);
+                Canvas.SetTop(selectionRectangle, startRectanglePoint.Y);
+
+                // Добавляем прямоугольник на Canvas
+                MainCanvas.Children.Add(selectionRectangle);
+            }
+            
             if(isSelectingEdges && selectedNode1 != null && selectedNode2 == null)
             {
-
                 Point startPoint = selectedNode1.ellipse.TranslatePoint(
                     new Point(selectedNode1.ellipse.ActualWidth / 2, selectedNode1.ellipse.ActualHeight / 2),
                     (UIElement)selectedNode1.Parent);
@@ -664,6 +772,137 @@ namespace GraphEditor
                 obj = LogicalTreeHelper.GetParent(obj);
             }
             return obj as TabItem;
+        }
+
+        private void MainCanvas_MouseUp(object sender, MouseButtonEventArgs e)
+        {
+            if (isRectangleSelectingMode)
+            {
+                // Завершаем выделение
+                isRectangleSelectingMode = false;
+
+                // Пример логики завершения (вы можете удалить или оставить прямоугольник)
+                GetNodesInSelection(selectionRectangle);
+
+                // Удаляем прямоугольник с Canvas
+                MainCanvas.Children.Remove(selectionRectangle);
+                selectionRectangle = null;
+            }
+        }
+
+        private void MainCanvas_MouseMove(object sender, MouseEventArgs e)
+        {
+            if (isRectangleSelectingMode && selectionRectangle != null)
+            {
+                // Текущая позиция мыши
+                Point currentPoint = e.GetPosition(MainCanvas);
+
+                // Вычисляем размеры и положение прямоугольника
+                double x = Math.Min(currentPoint.X, startRectanglePoint.X);
+                double y = Math.Min(currentPoint.Y, startRectanglePoint.Y);
+                double width = Math.Abs(currentPoint.X - startRectanglePoint.X);
+                double height = Math.Abs(currentPoint.Y - startRectanglePoint.Y);
+
+                // Обновляем свойства прямоугольника
+                Canvas.SetLeft(selectionRectangle, x);
+                Canvas.SetTop(selectionRectangle, y);
+                selectionRectangle.Width = width;
+                selectionRectangle.Height = height;
+            }
+        }
+        
+        private void GetNodesInSelection(Rectangle selectionRectangle)
+        {
+            List<Node> selectedNodes = new List<Node>();
+            List<InflectionNode> selectedInflectionNodes = new List<InflectionNode>();
+
+            // Получаем координаты выделенного прямоугольника
+            double selectionX = Canvas.GetLeft(selectionRectangle);
+            double selectionY = Canvas.GetTop(selectionRectangle);
+            double selectionWidth = selectionRectangle.Width;
+            double selectionHeight = selectionRectangle.Height;
+
+            // Проходим по всем элементам Canvas
+            foreach (var child in MainCanvas.Children)
+            {
+                if (child is Node node)
+                {
+                    // Получаем координаты узла
+                    double nodeX = Canvas.GetLeft(node) + node.ActualWidth / 2; // Центр узла
+                    double nodeY = Canvas.GetTop(node) + node.ActualHeight / 2;
+                    
+                    // Проверяем, входит ли узел в прямоугольник
+                    if (nodeX >= selectionX && nodeX <= selectionX + selectionWidth &&
+                        nodeY >= selectionY && nodeY <= selectionY + selectionHeight)
+                    {
+                        selectedNodes.Add(node);
+                        node.RepresentFocus();
+                    }
+                }
+
+                else if (child is Edge edge)
+                {
+                    foreach (var inflectionNode in edge.inflectionEllipses)
+                    {
+                        double nodeX = Canvas.GetLeft(inflectionNode) + inflectionNode.ActualWidth / 2; // Центр узла
+                        double nodeY = Canvas.GetTop(inflectionNode) + inflectionNode.ActualHeight / 2;
+                    
+                        // Проверяем, входит ли узел в прямоугольник
+                        if (nodeX >= selectionX && nodeX <= selectionX + selectionWidth &&
+                            nodeY >= selectionY && nodeY <= selectionY + selectionHeight)
+                        {
+                            selectedInflectionNodes.Add(inflectionNode);
+                        }
+                    }
+                    
+                }
+              
+            }
+
+            this.selectedNodes = selectedNodes;
+            this.selectedInflectionNodes = selectedInflectionNodes;
+
+        }
+
+        private void MainCanvas_MouseWheel(object sender, MouseWheelEventArgs e)
+        {
+            // Проверяем, зажата ли клавиша Ctrl
+            if (Keyboard.IsKeyDown(Key.LeftCtrl) || Keyboard.IsKeyDown(Key.RightCtrl))
+            {
+                // Коэффициент изменения масштаба
+                double scaleFactor = e.Delta > 0 ? 1.1 : 0.9;
+        
+                // Новое значение масштаба
+                scale *= scaleFactor;
+                scaleTransform.ScaleX = scale;
+                scaleTransform.ScaleY = scale;
+        
+                // Позиция курсора относительно Canvas
+                Point cursorPosition = e.GetPosition(MainCanvas);
+        
+                // Устанавливаем центр масштабирования
+                scaleTransform.CenterX = cursorPosition.X;
+                scaleTransform.CenterY = cursorPosition.Y;
+        
+                e.Handled = true; // Указываем, что событие обработано
+            }
+        }
+        private void ShowVertexInfo()
+        {
+            if (graph.Nodes.Count == 0)
+            {
+                MessageBox.Show("Граф не содержит вершин.", "Ошибка", MessageBoxButton.OK, MessageBoxImage.Information);
+                return;
+            }
+
+            // Создаём и отображаем окно с информацией о вершинах
+            VertexesDegreeWindow vertexInfoWindow = new VertexesDegreeWindow(graph.Nodes);
+            vertexInfoWindow.ShowDialog();
+        }
+        
+        private void ScrollViewer_GotFocus(object sender, RoutedEventArgs e)
+        {
+            MainCanvas.Focus();
         }
     }
 }
